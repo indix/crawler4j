@@ -27,6 +27,8 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -76,6 +78,9 @@ public class PageFetcher extends Configurable {
 		params.setParameter(CoreProtocolPNames.USER_AGENT, config.getUserAgentString());
 		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.getSocketTimeout());
 		params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.getConnectionTimeout());
+
+        // FIX for #136 - JVM crash while running crawler on Cent OS 6.2 - http://code.google.com/p/crawler4j/issues/detail?id=136
+        params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
 
 		params.setBooleanParameter("http.protocol.handle-redirects", false);
 
