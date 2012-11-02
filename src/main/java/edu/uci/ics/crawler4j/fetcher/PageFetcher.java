@@ -149,7 +149,7 @@ public class PageFetcher extends Configurable {
 				lastFetchTime = (new Date()).getTime();
 			}
 			get.addHeader("Accept-Encoding", "gzip");
-
+            get.addHeader("Accept", "*/*");
             // Create a local instance of cookie store, and bind to local context
             // Without this we get killed w/lots of threads, due to sync() on single cookie store.
             HttpContext localContext = new BasicHttpContext();
