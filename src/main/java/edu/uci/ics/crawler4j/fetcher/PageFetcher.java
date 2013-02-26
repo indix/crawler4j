@@ -166,7 +166,7 @@ public class PageFetcher extends Configurable {
 						Header header = response.getFirstHeader("Location");
 						if (header != null) {
 							String movedToUrl = header.getValue();
-							movedToUrl = URLCanonicalizer.getCanonicalURL(movedToUrl, toFetchURL);
+							movedToUrl = URLCanonicalizer.getCanonicalURL(movedToUrl, toFetchURL, false);
 							fetchResult.setMovedToUrl(movedToUrl);
 						} 
 						fetchResult.setStatusCode(statusCode);

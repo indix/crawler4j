@@ -1,7 +1,7 @@
 package edu.uci.ics.crawler4j.tests;
 
-import junit.framework.TestCase;
 import edu.uci.ics.crawler4j.url.URLCanonicalizer;
+import junit.framework.TestCase;
 
 public class URLCanonicalizerTest extends TestCase {
 
@@ -65,7 +65,14 @@ public class URLCanonicalizerTest extends TestCase {
 				URLCanonicalizer.getCanonicalURL("http://www.example.com/search?width=100%&height=100%"));
 
 		assertEquals("http://foo.bar/mydir/myfile?page=2",
-				URLCanonicalizer.getCanonicalURL("?page=2", "http://foo.bar/mydir/myfile"));
-
+				URLCanonicalizer.getCanonicalURL("?page=2", "http://foo.bar/mydir/myfile", false));
 	}
+
+    public void testProductPageCanonicalizer() {
+        assertEquals("http://foo.bar/mydir/myfile?pid=2",
+                URLCanonicalizer.getCanonicalURL("?pid=2", "http://foo.bar/mydir/myfile", true));
+
+        assertEquals("http://www.amazon.com/Sterling-Silver-Symbol-Pendant-Necklace/dp/B002R98UTA",
+                URLCanonicalizer.getCanonicalURL("http://www.amazon.com/Sterling-Silver-Symbol-Pendant-Necklace/dp/B002R98UTA/ref=sr_1_1?s=jewelry&ie=UTF8&qid=1361876965&sr=1-1&keywords=Sterling+Silver+Yoga%2C+Aum%2C+Om%2C+Ohm%2C+India+Symbol+with+Amber+Stone+Pendant+Necklace+for+Women+and+Men", true));
+    }
 }

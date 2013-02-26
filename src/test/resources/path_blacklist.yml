@@ -1,0 +1,6 @@
+path:
+  - ref=
+# Params which do not have an *id* in it, is already removed,
+# Add only params with *id* in it and it needs to be stripped off
+params:
+  - qid
