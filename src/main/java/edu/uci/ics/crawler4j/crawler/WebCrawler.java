@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * WebCrawler class in the Runnable class that is executed by each crawler
  * thread.
- * 
+ *
  * @author Yasser Ganjisaffar <lastname at gmail dot com>
  */
 public class WebCrawler implements Runnable {
@@ -101,7 +101,7 @@ public class WebCrawler implements Runnable {
 
 	/**
 	 * Initializes the current instance of the crawler
-	 * 
+	 *
 	 * @param myId
 	 *            the id of this crawler instance
 	 * @param crawlController
@@ -120,7 +120,7 @@ public class WebCrawler implements Runnable {
 
 	/**
 	 * Get the id of the current crawler instance
-	 * 
+	 *
 	 * @return the id of the current crawler instance
 	 */
 	public int getMyId() {
@@ -146,13 +146,20 @@ public class WebCrawler implements Runnable {
 	 */
 	public void onBeforeExit() {
 	}
-	
+
 	/**
 	 * This function is called once the header of a page is fetched.
 	 * It can be overwritten by sub-classes to perform custom logic
 	 * for different status codes. For example, 404 pages can be logged, etc.
 	 */
 	protected void handlePageStatusCode(WebURL webUrl, int statusCode, String statusDescription) {
+	}
+
+    /**
+	 * This function is called once the header of a page is fetched and the status is a re-direction.
+	 * It can be overwritten by sub-classes to perform custom logic
+	 */
+	protected void handlePageRedirection(WebURL oldUrl, String newUrl, int statusCode, String statusDescription) {
 	}
 
 	/**
@@ -202,7 +209,7 @@ public class WebCrawler implements Runnable {
 	 * Classes that extends WebCrawler can overwrite this function to tell the
 	 * crawler whether the given url should be crawled or not. The following
 	 * implementation indicates that all urls should be included in the crawl.
-	 * 
+	 *
 	 * @param url
 	 *            the url which we are interested to know whether it should be
 	 *            included in the crawl or not.
@@ -216,7 +223,7 @@ public class WebCrawler implements Runnable {
 	/**
 	 * Classes that extends WebCrawler can overwrite this function to process
 	 * the content of the fetched and parsed page.
-	 * 
+	 *
 	 * @param page
 	 *            the page object that is just fetched and parsed.
 	 */
@@ -236,6 +243,7 @@ public class WebCrawler implements Runnable {
 				if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
 					if (myController.getConfig().isFollowRedirects()) {
 						String movedToUrl = fetchResult.getMovedToUrl();
+                        handlePageRedirection(curURL, movedToUrl, statusCode, CustomFetchStatus.getStatusDescription(statusCode));
 						if (movedToUrl == null) {
 							return;
 						}
