@@ -61,8 +61,13 @@ public class Parser extends Configurable {
 		} else if (Util.hasPlainTextContent(page.getContentType())) {
 			try {
 				TextParseData parseData = new TextParseData();
-				parseData.setTextContent(new String(page.getContentData(), page.getContentCharset()));
-				page.setParseData(parseData);
+                if (page.getContentCharset() == null) {
+                    parseData.setTextContent(new String(page.getContentData()));
+
+                } else {
+                    parseData.setTextContent(new String(page.getContentData(), page.getContentCharset()));
+                }
+                page.setParseData(parseData);
 				return true;
 			} catch (Exception e) {
 				e.printStackTrace();
