@@ -56,4 +56,12 @@ public class HostDirectives {
 	public long getLastAccessTime() {
 		return timeLastAccessed;
 	}
+
+    public RuleSet getAllows() {
+        return allows;
+    }
+
+    public RuleSet getDisallows() {
+        return disallows;
+    }
 }
