@@ -17,8 +17,11 @@
 
 package edu.uci.ics.crawler4j.crawler;
 
+import java.nio.charset.Charset;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 
 import edu.uci.ics.crawler4j.parser.ParseData;
@@ -58,6 +61,12 @@ public class Page {
      * For example: "UTF-8"
      */
     protected String contentCharset;
+    
+    /**
+     * Headers which were present in the response of the
+     * fetch request
+     */
+    protected Header[] fetchResponseHeaders;
 
     /**
      * The parsed data populated by parsers
@@ -94,10 +103,24 @@ public class Page {
 			contentEncoding = encoding.getValue();
 		}
 
-		contentCharset = EntityUtils.getContentCharSet(entity);
+		Charset charset = ContentType.getOrDefault(entity).getCharset();
+		if (charset != null) {
+			contentCharset = charset.displayName();	
+		}
 
 		contentData = EntityUtils.toByteArray(entity);
-
+	}
+	
+	/**
+     * Returns headers which were present in the response of the
+     * fetch request
+     */
+	public Header[] getFetchResponseHeaders() {
+		return fetchResponseHeaders;
+	}
+	
+	public void setFetchResponseHeaders(Header[] headers) {
+		fetchResponseHeaders = headers;
 	}
 
     /**
