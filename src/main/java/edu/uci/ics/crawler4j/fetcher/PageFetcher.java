@@ -150,6 +150,13 @@ public class PageFetcher extends Configurable {
 			}
 			get.addHeader("Accept-Encoding", "gzip");
             get.addHeader("Accept", "*/*");
+
+            for (final String header: config.getCustomHeaders()) {
+                String name = header.split(":")[0];
+                String value = header.split(":")[1];
+                get.addHeader(name, value);
+            }
+
             // Create a local instance of cookie store, and bind to local context
             // Without this we get killed w/lots of threads, due to sync() on single cookie store.
             HttpContext localContext = new BasicHttpContext();

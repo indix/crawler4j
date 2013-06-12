@@ -17,6 +17,9 @@
 
 package edu.uci.ics.crawler4j.crawler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CrawlConfig {
 
 	/**
@@ -126,6 +129,11 @@ public class CrawlConfig {
 	 * password.
 	 */
 	private String proxyPassword = null;
+
+    /**
+     * Supporting custom http headers.
+     */
+    private List<String> customHeaders = new ArrayList<String>();
 
 	public CrawlConfig() {
 	}
@@ -376,7 +384,15 @@ public class CrawlConfig {
 		this.proxyPassword = proxyPassword;
 	}
 
-	@Override
+    public List<String> getCustomHeaders() {
+        return customHeaders;
+    }
+
+    public void setCustomHeaders(List<String> customHeaders) {
+        this.customHeaders = customHeaders;
+    }
+
+    @Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Crawl storage folder: " + getCrawlStorageFolder() + "\n");
