@@ -28,6 +28,8 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class HtmlContentHandler extends DefaultHandler {
 
+	private final int MAX_ANCHOR_LENGTH = 100;
+
 	private enum Element {
 		A, AREA, LINK, IFRAME, FRAME, EMBED, IMG, BASE, META, BODY
 	}
@@ -36,7 +38,7 @@ public class HtmlContentHandler extends DefaultHandler {
 		private static Map<String, Element> name2Element;
 
 		static {
-			name2Element = new HashMap<String, Element>();
+			name2Element = new HashMap<>();
 			for (Element element : Element.values()) {
 				name2Element.put(element.toString().toLowerCase(), element);
 			}
@@ -63,7 +65,7 @@ public class HtmlContentHandler extends DefaultHandler {
 	public HtmlContentHandler() {
 		isWithinBodyElement = false;
 		bodyText = new StringBuilder();
-		outgoingUrls = new ArrayList<ExtractedUrlAnchorPair>();
+		outgoingUrls = new ArrayList<>();
 	}
 
 	@Override
@@ -124,11 +126,17 @@ public class HtmlContentHandler extends DefaultHandler {
 					if (pos != -1) {
 						metaRefresh = content.substring(pos + 4);
 					}
+					curUrl = new ExtractedUrlAnchorPair();
+					curUrl.setHref(metaRefresh);
+					outgoingUrls.add(curUrl);
 				}
 
 				// http-equiv="location" content="http://foo.bar/..."
 				if (equiv.equals("location") && (metaLocation == null)) {
 					metaLocation = content;
+					curUrl = new ExtractedUrlAnchorPair();
+					curUrl.setHref(metaRefresh);
+					outgoingUrls.add(curUrl);
 				}
 			}
 			return;
@@ -145,8 +153,11 @@ public class HtmlContentHandler extends DefaultHandler {
 		if (element == Element.A || element == Element.AREA || element == Element.LINK) {
 			anchorFlag = false;
 			if (curUrl != null) {
-				String anchor = anchorText.toString().trim();
+				String anchor = anchorText.toString().replaceAll("\n", " ").replaceAll("\t", " ").trim();
 				if (!anchor.isEmpty()) {
+					if (anchor.length() > MAX_ANCHOR_LENGTH) {
+						anchor = anchor.substring(0, MAX_ANCHOR_LENGTH) + "...";
+					}
 					curUrl.setAnchor(anchor);
 				}
 				anchorText.delete(0, anchorText.length());
@@ -164,7 +175,7 @@ public class HtmlContentHandler extends DefaultHandler {
 			bodyText.append(ch, start, length);
 
 			if (anchorFlag) {
-				anchorText.append(new String(ch, start, length).replaceAll("\n", "").replaceAll("\t", "").trim());
+				anchorText.append(new String(ch, start, length));
 			}
 		}
 	}

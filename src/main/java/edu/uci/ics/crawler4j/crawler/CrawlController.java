@@ -40,7 +40,7 @@ import java.util.List;
  */
 public class CrawlController extends Configurable {
 
-	private static final Logger logger = Logger.getLogger(CrawlController.class.getName());
+	static final Logger logger = Logger.getLogger(CrawlController.class.getName());
 
 	/**
 	 * The 'customData' object can be used for passing custom crawl-related
@@ -52,7 +52,7 @@ public class CrawlController extends Configurable {
 	 * Once the crawling session finishes the controller collects the local data
 	 * of the crawler threads and stores them in this List.
 	 */
-	protected List<Object> crawlersLocalData = new ArrayList<Object>();
+	protected List<Object> crawlersLocalData = new ArrayList<>();
 
 	/**
 	 * Is the crawling of this session finished?
@@ -142,8 +142,8 @@ public class CrawlController extends Configurable {
 		try {
 			finished = false;
 			crawlersLocalData.clear();
-			final List<Thread> threads = new ArrayList<Thread>();
-			final List<T> crawlers = new ArrayList<T>();
+			final List<Thread> threads = new ArrayList<>();
+			final List<T> crawlers = new ArrayList<>();
 
 			for (int i = 1; i <= numberOfCrawlers; i++) {
 				T crawler = _c.newInstance();
@@ -285,10 +285,11 @@ public class CrawlController extends Configurable {
 		return crawlersLocalData;
 	}
 
-	protected void sleep(int seconds) {
+	protected static void sleep(int seconds) {
 		try {
 			Thread.sleep(seconds * 1000);
 		} catch (Exception ignored) {
+			// Do nothing
 		}
 	}
 
@@ -364,7 +365,7 @@ public class CrawlController extends Configurable {
 	 * the next URL that is found during the crawl will get a doc id of 8. Also
 	 * you need to ensure to add seen Urls in increasing order of document ids. 
 	 * 
-	 * @param pageUrl
+	 * @param url
 	 *            the URL of the page
 	 * @param docId
 	 *            the document id that you want to be assigned to this URL.
@@ -436,7 +437,7 @@ public class CrawlController extends Configurable {
 	 * monitor the shutdown flag and when it is set to true, they will no longer
 	 * process new pages.
 	 */
-	public void Shutdown() {
+	public void shutdown() {
 		logger.info("Shutting down...");
 		this.shuttingDown = true;
 		frontier.finish();

@@ -38,8 +38,12 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.*;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParamBean;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
@@ -56,7 +60,7 @@ public class PageFetcher extends Configurable {
 
 	protected static final Logger logger = Logger.getLogger(PageFetcher.class);
 
-	protected ThreadSafeClientConnManager connectionManager;
+	protected PoolingClientConnectionManager connectionManager;
 
 	protected DefaultHttpClient httpClient;
 
@@ -75,6 +79,7 @@ public class PageFetcher extends Configurable {
 		paramsBean.setContentCharset("UTF-8");
 		paramsBean.setUseExpectContinue(false);
 
+		params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
 		params.setParameter(CoreProtocolPNames.USER_AGENT, config.getUserAgentString());
 		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.getSocketTimeout());
 		params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.getConnectionTimeout());
@@ -91,7 +96,7 @@ public class PageFetcher extends Configurable {
 			schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
 		}
 
-		connectionManager = new ThreadSafeClientConnManager(schemeRegistry);
+		connectionManager = new PoolingClientConnectionManager(schemeRegistry);
 		connectionManager.setMaxTotal(config.getMaxTotalConnections());
 		connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
 		httpClient = new DefaultHttpClient(connectionManager, params);
@@ -165,7 +170,8 @@ public class PageFetcher extends Configurable {
 
 			HttpResponse response = httpClient.execute(get);
 			fetchResult.setEntity(response.getEntity());
-
+			fetchResult.setResponseHeaders(response.getAllHeaders());
+			
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != HttpStatus.SC_OK) {
 				if (statusCode != HttpStatus.SC_NOT_FOUND) {
@@ -208,15 +214,17 @@ public class PageFetcher extends Configurable {
 				}
 				if (size > config.getMaxDownloadSize()) {
 					fetchResult.setStatusCode(CustomFetchStatus.PageTooBig);
+					get.abort();
 					return fetchResult;
 				}
 
 				fetchResult.setStatusCode(HttpStatus.SC_OK);
 				return fetchResult;
 
-			} else {
-				get.abort();
 			}
+			
+			get.abort();
+			
 		} catch (IOException e) {
 			logger.error("Fatal transport error: " + e.getMessage() + " while fetching " + toFetchURL
 					+ " (link found in doc #" + webUrl.getParentDocid() + ")");

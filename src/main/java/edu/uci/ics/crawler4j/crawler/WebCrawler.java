@@ -102,13 +102,13 @@ public class WebCrawler implements Runnable {
 	/**
 	 * Initializes the current instance of the crawler
 	 *
-	 * @param myId
+	 * @param id
 	 *            the id of this crawler instance
 	 * @param crawlController
 	 *            the controller that manages this crawling session
 	 */
-	public void init(int myId, CrawlController crawlController) {
-		this.myId = myId;
+	public void init(int id, CrawlController crawlController) {
+		this.myId = id;
 		this.pageFetcher = crawlController.getPageFetcher();
 		this.robotstxtServer = crawlController.getRobotstxtServer();
 		this.docIdServer = crawlController.getDocIdServer();
@@ -137,6 +137,8 @@ public class WebCrawler implements Runnable {
 	 * initializations needed by this crawler instance.
 	 */
 	public void onStart() {
+		// Do nothing by default
+		// Sub-classed can override this to add their custom functionality
 	}
 
 	/**
@@ -145,14 +147,43 @@ public class WebCrawler implements Runnable {
 	 * finalization tasks.
 	 */
 	public void onBeforeExit() {
+		// Do nothing by default
+		// Sub-classed can override this to add their custom functionality
 	}
 
 	/**
-	 * This function is called once the header of a page is fetched.
-	 * It can be overwritten by sub-classes to perform custom logic
-	 * for different status codes. For example, 404 pages can be logged, etc.
+	 * This function is called once the header of a page is fetched. It can be
+	 * overwritten by sub-classes to perform custom logic for different status
+	 * codes. For example, 404 pages can be logged, etc.
+	 * 
+	 * @param webUrl
+	 * @param statusCode
+	 * @param statusDescription
 	 */
 	protected void handlePageStatusCode(WebURL webUrl, int statusCode, String statusDescription) {
+		// Do nothing by default
+		// Sub-classed can override this to add their custom functionality
+	}
+
+	/**
+	 * This function is called if the content of a url could not be fetched.
+	 * 
+	 * @param webUrl
+	 */
+	protected void onContentFetchError(WebURL webUrl) {
+		// Do nothing by default
+		// Sub-classed can override this to add their custom functionality
+	}
+
+	/**
+	 * This function is called if there has been an error in parsing the
+	 * content.
+	 * 
+	 * @param webUrl
+	 */
+	protected void onParseError(WebURL webUrl) {
+		// Do nothing by default
+		// Sub-classed can override this to add their custom functionality
 	}
 
     /**
@@ -177,7 +208,7 @@ public class WebCrawler implements Runnable {
 	public void run() {
 		onStart();
 		while (true) {
-			List<WebURL> assignedURLs = new ArrayList<WebURL>(50);
+			List<WebURL> assignedURLs = new ArrayList<>(50);
 			isWaitingForNewURLs = true;
 			frontier.getNextURLs(50, assignedURLs);
 			isWaitingForNewURLs = false;
@@ -228,6 +259,8 @@ public class WebCrawler implements Runnable {
 	 *            the page object that is just fetched and parsed.
 	 */
 	public void visit(Page page) {
+		// Do nothing by default
+		// Sub-classed can override this to add their custom functionality
 	}
 
 	private void processPage(WebURL curURL) {
@@ -251,17 +284,18 @@ public class WebCrawler implements Runnable {
 						if (newDocId > 0) {
 							// Redirect page is already seen
 							return;
-						} else {
-							WebURL webURL = new WebURL();
-							webURL.setURL(movedToUrl);
-							webURL.setParentDocid(curURL.getParentDocid());
-							webURL.setParentUrl(curURL.getParentUrl());
-							webURL.setDepth(curURL.getDepth());
-							webURL.setDocid(-1);
-							if (shouldVisit(webURL) && robotstxtServer.allows(webURL)) {
-								webURL.setDocid(docIdServer.getNewDocID(movedToUrl));
-								frontier.schedule(webURL);
-							}
+						}
+
+						WebURL webURL = new WebURL();
+						webURL.setURL(movedToUrl);
+						webURL.setParentDocid(curURL.getParentDocid());
+						webURL.setParentUrl(curURL.getParentUrl());
+						webURL.setDepth(curURL.getDepth());
+						webURL.setDocid(-1);
+						webURL.setAnchor(curURL.getAnchor());
+						if (shouldVisit(webURL) && robotstxtServer.allows(webURL)) {
+							webURL.setDocid(docIdServer.getNewDocID(movedToUrl));
+							frontier.schedule(webURL);
 						}
 					}
 				} else if (fetchResult.getStatusCode() == CustomFetchStatus.PageTooBig) {
@@ -281,40 +315,53 @@ public class WebCrawler implements Runnable {
 
 			Page page = new Page(curURL);
 			int docid = curURL.getDocid();
-			if (fetchResult.fetchContent(page) && parser.parse(page, curURL.getURL())) {
-				ParseData parseData = page.getParseData();
-				if (parseData instanceof HtmlParseData) {
-					HtmlParseData htmlParseData = (HtmlParseData) parseData;
 
-					List<WebURL> toSchedule = new ArrayList<WebURL>();
-					int maxCrawlDepth = myController.getConfig().getMaxDepthOfCrawling();
-					for (WebURL webURL : htmlParseData.getOutgoingUrls()) {
-						webURL.setParentDocid(docid);
-						webURL.setParentUrl(curURL.getURL());
-						int newdocid = docIdServer.getDocId(webURL.getURL());
-						if (newdocid > 0) {
-							// This is not the first time that this Url is
-							// visited. So, we set the depth to a negative
-							// number.
-							webURL.setDepth((short) -1);
-							webURL.setDocid(newdocid);
-						} else {
-							webURL.setDocid(-1);
-							webURL.setDepth((short) (curURL.getDepth() + 1));
-							if (maxCrawlDepth == -1 || curURL.getDepth() < maxCrawlDepth) {
-								if (shouldVisit(webURL) && robotstxtServer.allows(webURL)) {
-									webURL.setDocid(docIdServer.getNewDocID(webURL.getURL()));
-									toSchedule.add(webURL);
-								}
+			if (!fetchResult.fetchContent(page)) {
+				onContentFetchError(curURL);
+				return;
+			}
+
+			if (!parser.parse(page, curURL.getURL())) {
+				onParseError(curURL);
+				return;
+			}
+
+			ParseData parseData = page.getParseData();
+			if (parseData instanceof HtmlParseData) {
+				HtmlParseData htmlParseData = (HtmlParseData) parseData;
+
+				List<WebURL> toSchedule = new ArrayList<>();
+				int maxCrawlDepth = myController.getConfig().getMaxDepthOfCrawling();
+				for (WebURL webURL : htmlParseData.getOutgoingUrls()) {
+					webURL.setParentDocid(docid);
+					webURL.setParentUrl(curURL.getURL());
+					int newdocid = docIdServer.getDocId(webURL.getURL());
+					if (newdocid > 0) {
+						// This is not the first time that this Url is
+						// visited. So, we set the depth to a negative
+						// number.
+						webURL.setDepth((short) -1);
+						webURL.setDocid(newdocid);
+					} else {
+						webURL.setDocid(-1);
+						webURL.setDepth((short) (curURL.getDepth() + 1));
+						if (maxCrawlDepth == -1 || curURL.getDepth() < maxCrawlDepth) {
+							if (shouldVisit(webURL) && robotstxtServer.allows(webURL)) {
+								webURL.setDocid(docIdServer.getNewDocID(webURL.getURL()));
+								toSchedule.add(webURL);
 							}
 						}
 					}
-					frontier.scheduleAll(toSchedule);
 				}
-				visit(page);
+				frontier.scheduleAll(toSchedule);
 			}
+			try {
+				visit(page);
+			} catch (Exception e) {
+				logger.error("Exception while running the visit method. Message: '" + e.getMessage() + "' at " + e.getStackTrace()[0]);
+			}
+
 		} catch (Exception e) {
-			e.printStackTrace();
 			logger.error(e.getMessage() + ", while processing: " + curURL.getURL());
 		} finally {
 			if (fetchResult != null) {

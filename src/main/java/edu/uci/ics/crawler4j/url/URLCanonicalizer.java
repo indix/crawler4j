@@ -44,6 +44,12 @@ public class URLCanonicalizer {
 
 		try {
 			URL canonicalURL = new URL(UrlResolver.resolveUrl(context == null ? "" : context, href));
+			
+			String host = canonicalURL.getHost().toLowerCase();
+			if (host == "") {
+				// This is an invalid Url.
+				return null;
+			}
 
 			String path = canonicalURL.getPath();
 
@@ -100,11 +106,7 @@ public class URLCanonicalizer {
 				port = -1;
 			}
 
-			/*
-			 * Lowercasing protocol and host
-			 */
 			String protocol = canonicalURL.getProtocol().toLowerCase();
-			String host = canonicalURL.getHost().toLowerCase();
 			String pathAndQueryString = normalizePath(path) + queryString;
 
 			URL result = new URL(protocol, host, port, pathAndQueryString);
@@ -129,7 +131,7 @@ public class URLCanonicalizer {
 		}
 
 		final String[] pairs = queryString.split("&");
-		final Map<String, String> params = new HashMap<String, String>(pairs.length);
+		final Map<String, String> params = new HashMap<>(pairs.length);
 
 		for (final String pair : pairs) {
 			if (pair.length() == 0) {
@@ -150,7 +152,7 @@ public class URLCanonicalizer {
 				break;
 			}
 		}
-		return new TreeMap<String, String>(params);
+		return new TreeMap<>(params);
 	}
 
 	/**
