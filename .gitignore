@@ -3,3 +3,7 @@ target/*
 *.iml
 .settings/*
 javadocs/*
+.classpath
+*.iml
+*.idea
+*.project
