@@ -140,7 +140,7 @@ public class CrawlConfig {
 
 	/**
 	 * Validates the configs specified by this instance.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	public void validate() throws Exception {
@@ -226,7 +226,7 @@ public class CrawlConfig {
 	/**
 	 * Politeness delay in milliseconds (delay between sending two requests to
 	 * the same host).
-	 * 
+	 *
 	 * @param politenessDelay
 	 *            the delay in milliseconds.
 	 */
@@ -389,7 +389,9 @@ public class CrawlConfig {
     }
 
     public void setCustomHeaders(List<String> customHeaders) {
-        this.customHeaders = customHeaders;
+        if(customHeaders != null) {
+            this.customHeaders = customHeaders;
+        }
     }
 
     @Override
@@ -413,6 +415,7 @@ public class CrawlConfig {
 		sb.append("Proxy port               : " + getProxyPort() + "\n");
 		sb.append("Proxy username           : " + getProxyUsername() + "\n");
 		sb.append("Proxy password           : " + getProxyPassword() + "\n");
+		sb.append("Custom Headers           : " + getCustomHeaders() + "\n");
 		return sb.toString();
 	}
 
