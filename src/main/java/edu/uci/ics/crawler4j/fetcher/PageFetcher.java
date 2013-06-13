@@ -235,7 +235,7 @@ public class PageFetcher extends Configurable {
 			// and other schemes
 		} catch (Exception e) {
 			if (e.getMessage() == null) {
-				logger.error("Error while fetching " + webUrl.getURL());
+				logger.error("Error while fetching " + webUrl.getURL(), e);
 			} else {
 				logger.error(e.getMessage() + " while fetching " + webUrl.getURL());
 			}
