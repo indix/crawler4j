@@ -119,6 +119,8 @@ public class PageFetcher extends Configurable {
             public void process(final HttpResponse response, final HttpContext context) throws HttpException,
                     IOException {
                 HttpEntity entity = response.getEntity();
+                if (entity == null) return;
+
                 Header contentEncoding = entity.getContentEncoding();
                 if (contentEncoding != null) {
                     HeaderElement[] codecs = contentEncoding.getElements();
