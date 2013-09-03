@@ -24,7 +24,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.tika.metadata.DublinCore;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
@@ -42,7 +43,7 @@ import edu.uci.ics.crawler4j.util.Util;
  */
 public class Parser extends Configurable {
 
-	protected static final Logger logger = Logger.getLogger(Parser.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
 	private HtmlParser htmlParser;
 	private ParseContext parseContext;

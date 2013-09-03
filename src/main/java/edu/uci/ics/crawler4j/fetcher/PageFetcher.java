@@ -46,7 +46,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParamBean;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +59,7 @@ import java.util.zip.GZIPInputStream;
  */
 public class PageFetcher extends Configurable {
 
-	protected static final Logger logger = Logger.getLogger(PageFetcher.class);
+	protected static final Logger logger = LoggerFactory.getLogger(PageFetcher.class);
 
 	protected PoolingClientConnectionManager connectionManager;
 
