@@ -248,8 +248,8 @@ public class PageFetcher extends Configurable {
 			try {
 				if (fetchResult.getEntity() == null && get != null) {
 					get.abort();
+					logger.error("Failed: To extract HTTP entity, from the fetched page result " + webUrl.getURL());
 				}
-				logger.error("Failed: To extract HTTP entity, from the fetched page result " + webUrl.getURL());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
