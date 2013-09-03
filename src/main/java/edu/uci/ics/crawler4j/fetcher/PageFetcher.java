@@ -215,9 +215,11 @@ public class PageFetcher extends Configurable {
 						size = -1;
 					}
 				}
+
 				if (size > config.getMaxDownloadSize()) {
 					fetchResult.setStatusCode(CustomFetchStatus.PageTooBig);
 					get.abort();
+					logger.error("Failed: Page Size (" + size + ") exceeded max-download-size (" + config.getMaxDownloadSize() + ")");
 					return fetchResult;
 				}
 
@@ -247,11 +249,13 @@ public class PageFetcher extends Configurable {
 				if (fetchResult.getEntity() == null && get != null) {
 					get.abort();
 				}
+				logger.error("Failed: To extract HTTP entity, from the fetched page result " + webUrl.getURL());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		fetchResult.setStatusCode(CustomFetchStatus.UnknownError);
+		logger.error("Failed: Unknown error occurred., while fetching " + webUrl.getURL());
 		return fetchResult;
 	}
 
