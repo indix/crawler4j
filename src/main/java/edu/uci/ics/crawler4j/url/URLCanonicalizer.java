@@ -23,10 +23,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * See http://en.wikipedia.org/wiki/URL_normalization for a reference Note: some
@@ -58,7 +55,7 @@ public class URLCanonicalizer {
 			 * ".", and no segments equal to ".." that are preceded by a segment
 			 * not equal to "..".
 			 */
-			path = new URI(path).normalize().toString();
+			path = new URI(normalizePath(path)).normalize().toString();
 
 			/*
 			 * Convert '//' -> '/'
@@ -81,7 +78,7 @@ public class URLCanonicalizer {
 			 */
 			path = path.trim();
 
-			final SortedMap<String, String> params = createParameterMap(canonicalURL.getQuery());
+			final List<Pair> params = createParameterMap(canonicalURL.getQuery());
 			final String queryString;
 
 			if (params != null && params.size() > 0) {
@@ -125,13 +122,13 @@ public class URLCanonicalizer {
 	 * 
 	 * @return Null if there is no query string.
 	 */
-	private static SortedMap<String, String> createParameterMap(final String queryString) {
+	private static List<Pair> createParameterMap(final String queryString) {
 		if (queryString == null || queryString.isEmpty()) {
 			return null;
 		}
 
 		final String[] pairs = queryString.split("&");
-		final Map<String, String> params = new HashMap<>(pairs.length);
+		final List<Pair> params = new ArrayList<>(pairs.length);
 
 		for (final String pair : pairs) {
 			if (pair.length() == 0) {
@@ -142,33 +139,33 @@ public class URLCanonicalizer {
 			switch (tokens.length) {
 			case 1:
 				if (pair.charAt(0) == '=') {
-					params.put("", tokens[0]);
+					params.add(new Pair("", tokens[0]));
 				} else {
-					params.put(tokens[0], "");
+					params.add(new Pair(tokens[0], ""));
 				}
 				break;
 			case 2: 
-				params.put(tokens[0], tokens[1]);
+				params.add(new Pair(tokens[0], tokens[1]));
 				break;
 			}
 		}
-		return new TreeMap<>(params);
+		return params;
 	}
 
 	/**
 	 * Canonicalize the query string.
 	 * 
-	 * @param sortedParamMap
+	 * @param params
 	 *            Parameter name-value pairs in lexicographical order.
 	 * @return Canonical form of query string.
 	 */
-	private static String canonicalize(final SortedMap<String, String> sortedParamMap) {
-		if (sortedParamMap == null || sortedParamMap.isEmpty()) {
+	private static String canonicalize(final List<Pair> params) {
+		if (params == null || params.isEmpty()) {
 			return "";
 		}
 
 		final StringBuffer sb = new StringBuffer(100);
-		for (Map.Entry<String, String> pair : sortedParamMap.entrySet()) {
+		for (Pair pair : params) {
 			final String key = pair.getKey().toLowerCase();
 			if (key.equals("jsessionid") || key.equals("phpsessid") || key.equals("aspsessionid")) {
 				continue;
@@ -176,10 +173,10 @@ public class URLCanonicalizer {
 			if (sb.length() > 0) {
 				sb.append('&');
 			}
-			sb.append(percentEncodeRfc3986(pair.getKey()));
+			sb.append(pair.getKey());
 			if (!pair.getValue().isEmpty()) {
 				sb.append('=');
-				sb.append(percentEncodeRfc3986(pair.getValue()));
+				sb.append(pair.getValue());
 			}
 		}
 		return sb.toString();
@@ -208,4 +205,23 @@ public class URLCanonicalizer {
 	private static String normalizePath(final String path) {
 		return path.replace("%7E", "~").replace(" ", "%20");
 	}
+
+    public static class Pair {
+        private String key;
+        private String value;
+
+        public Pair(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
 }

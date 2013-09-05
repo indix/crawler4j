@@ -7,10 +7,10 @@ public class URLCanonicalizerTest extends TestCase {
 
 	public static void testCanonizalier() {
 
-		assertEquals("http://www.example.com/display?category=foo%2Fbar%2Bbaz",
+		assertEquals("http://www.example.com/display?category=foo/bar+baz",
 				URLCanonicalizer.getCanonicalURL("http://www.example.com/display?category=foo/bar+baz"));
 
-		assertEquals("http://www.example.com/?q=a%2Bb",
+		assertEquals("http://www.example.com/?q=a+b",
 				URLCanonicalizer.getCanonicalURL("http://www.example.com/?q=a+b"));
 
 		assertEquals("http://www.example.com/display?category=foo%2Fbar%2Bbaz",
@@ -55,17 +55,23 @@ public class URLCanonicalizerTest extends TestCase {
 
 		assertEquals("http://foo.bar.com/?baz=1", URLCanonicalizer.getCanonicalURL("http://foo.bar.com?baz=1"));
 
-		assertEquals("http://www.example.com/index.html?a=b&c=d&e=f",
+		assertEquals("http://www.example.com/index.html?c=d&e=f&a=b",
 				URLCanonicalizer.getCanonicalURL("http://www.example.com/index.html?&c=d&e=f&a=b"));
 
-		assertEquals("http://www.example.com/index.html?q=a%20b",
+		assertEquals("http://www.example.com/index.html?q=a b",
 				URLCanonicalizer.getCanonicalURL("http://www.example.com/index.html?q=a b"));
 
-		assertEquals("http://www.example.com/search?height=100%&width=100%",
+		assertEquals("http://www.example.com/search?width=100%&height=100%",
 				URLCanonicalizer.getCanonicalURL("http://www.example.com/search?width=100%&height=100%"));
 
 		assertEquals("http://foo.bar/mydir/myfile?page=2",
 				URLCanonicalizer.getCanonicalURL("?page=2", "http://foo.bar/mydir/myfile"));
 
-	}
+        assertEquals("http://www.lampsplus.com/products/s_%20/",
+                URLCanonicalizer.getCanonicalURL("http://www.lampsplus.com/products/s_ /"));
+
+        assertEquals("http://www.vitacost.com/productResults.aspx?N=1300986+2009046",
+                URLCanonicalizer.getCanonicalURL("http://www.vitacost.com/productResults.aspx?N=1300986+2009046"));
+
+    }
 }
