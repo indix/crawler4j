@@ -98,9 +98,14 @@ public class Page {
 
 	public void setCanonicalUrl(String canonicalUrl) {
 		if(canonicalUrl != null && !canonicalUrl.isEmpty()) {
-		    WebURL canonicalWebUrl = fetchedUrl;
-		    canonicalWebUrl.setURL(canonicalUrl);
-		    this.url = canonicalWebUrl;
+			WebURL canonicalWebUrl = new WebURL();
+			canonicalWebUrl.setAnchor(fetchedUrl.getAnchor());
+			canonicalWebUrl.setDepth(fetchedUrl.getDepth());
+			canonicalWebUrl.setDocid(fetchedUrl.getDocid());
+			canonicalWebUrl.setParentDocid(fetchedUrl.getParentDocid());
+			canonicalWebUrl.setParentUrl(fetchedUrl.getParentUrl());
+			canonicalWebUrl.setURL(canonicalUrl);
+			this.url = canonicalWebUrl;
 		}
 	}
 
