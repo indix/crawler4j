@@ -17,15 +17,14 @@
 
 package edu.uci.ics.crawler4j.crawler;
 
-import java.nio.charset.Charset;
-
+import edu.uci.ics.crawler4j.parser.ParseData;
+import edu.uci.ics.crawler4j.url.WebURL;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 
-import edu.uci.ics.crawler4j.parser.ParseData;
-import edu.uci.ics.crawler4j.url.WebURL;
+import java.nio.charset.Charset;
 
 /**
  * This class contains the data for a fetched and parsed page.
@@ -36,8 +35,14 @@ public class Page {
 
     /**
      * The URL of this page.
+     * NOTE - This could most likely be updated to rel=canonical if present
      */
     protected WebURL url;
+
+    /**
+     * This will always be the URL of this page.
+     */
+    protected WebURL fetchedUrl;
 
     /**
      * The content of this page in binary format.
@@ -61,7 +66,7 @@ public class Page {
      * For example: "UTF-8"
      */
     protected String contentCharset;
-    
+
     /**
      * Headers which were present in the response of the
      * fetch request
@@ -75,14 +80,28 @@ public class Page {
 
 	public Page(WebURL url) {
 		this.url = url;
+		this.fetchedUrl = url;
 	}
 
 	public WebURL getWebURL() {
 		return url;
 	}
 
+	public WebURL getFetchedUrl() {
+	    return fetchedUrl;
+	}
+
 	public void setWebURL(WebURL url) {
+        this.fetchedUrl = url;
 		this.url = url;
+	}
+
+	public void setCanonicalUrl(String canonicalUrl) {
+		if(canonicalUrl != null && !canonicalUrl.isEmpty()) {
+		    WebURL canonicalWebUrl = fetchedUrl;
+		    canonicalWebUrl.setURL(canonicalUrl);
+		    this.url = canonicalWebUrl;
+		}
 	}
 
     /**
@@ -105,12 +124,12 @@ public class Page {
 
 		Charset charset = ContentType.getOrDefault(entity).getCharset();
 		if (charset != null) {
-			contentCharset = charset.displayName();	
+			contentCharset = charset.displayName();
 		}
 
 		contentData = EntityUtils.toByteArray(entity);
 	}
-	
+
 	/**
      * Returns headers which were present in the response of the
      * fetch request
@@ -118,7 +137,7 @@ public class Page {
 	public Header[] getFetchResponseHeaders() {
 		return fetchResponseHeaders;
 	}
-	
+
 	public void setFetchResponseHeaders(Header[] headers) {
 		fetchResponseHeaders = headers;
 	}

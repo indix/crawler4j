@@ -26,6 +26,7 @@ public class HtmlParseData implements ParseData {
 	private String html;
 	private String text;
 	private String title;
+	private String canonicalUrl;
 
 	private List<WebURL> outgoingUrls;
 
@@ -60,7 +61,15 @@ public class HtmlParseData implements ParseData {
 	public void setOutgoingUrls(List<WebURL> outgoingUrls) {
 		this.outgoingUrls = outgoingUrls;
 	}
-	
+
+	public String getCanonicalUrl() {
+        return canonicalUrl;
+	}
+
+	public void setCanonicalUrl(String canonicalUrl) {
+        this.canonicalUrl = canonicalUrl;
+	}
+
 	@Override
 	public String toString() {
 		return text;

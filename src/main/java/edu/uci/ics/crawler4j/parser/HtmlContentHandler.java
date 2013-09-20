@@ -17,14 +17,14 @@
 
 package edu.uci.ics.crawler4j.parser;
 
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 public class HtmlContentHandler extends DefaultHandler {
 
@@ -52,6 +52,7 @@ public class HtmlContentHandler extends DefaultHandler {
 	private String base;
 	private String metaRefresh;
 	private String metaLocation;
+	private String canonicalUrl;
 
 	private boolean isWithinBodyElement;
 	private StringBuilder bodyText;
@@ -79,6 +80,11 @@ public class HtmlContentHandler extends DefaultHandler {
 				curUrl = new ExtractedUrlAnchorPair();
 				curUrl.setHref(href);
 				outgoingUrls.add(curUrl);
+
+				String relCanonical = attributes.getValue("rel");
+				if(relCanonical != null && relCanonical.equals("canonical")) {
+				    canonicalUrl = href;
+				}
 			}
 			return;
 		}
@@ -190,6 +196,10 @@ public class HtmlContentHandler extends DefaultHandler {
 
 	public String getBaseUrl() {
 		return base;
+	}
+
+	public String getCanonicalUrl() {
+	    return canonicalUrl;
 	}
 
 }
