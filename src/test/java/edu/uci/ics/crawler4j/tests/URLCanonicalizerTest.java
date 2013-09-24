@@ -73,5 +73,8 @@ public class URLCanonicalizerTest extends TestCase {
         assertEquals("http://www.vitacost.com/productResults.aspx?N=1300986+2009046",
                 URLCanonicalizer.getCanonicalURL("http://www.vitacost.com/productResults.aspx?N=1300986+2009046"));
 
-    }
+		assertEquals("http://www.pier1.com/Bright-Chenille-Striped-Rug/2527614,default,pd.html",
+			URLCanonicalizer.getCanonicalURL("/Bright-Chenille-Striped-Rug/2527614,default,pd.html", "http://www.pier1.com/Bright-Chenille-Striped-Rug/2527614,default,pd.html"));
+
+	}
 }

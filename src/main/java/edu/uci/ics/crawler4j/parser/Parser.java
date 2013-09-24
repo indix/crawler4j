@@ -104,7 +104,6 @@ public class Parser extends Configurable {
 		HtmlParseData parseData = new HtmlParseData();
 		parseData.setText(contentHandler.getBodyText().trim());
 		parseData.setTitle(metadata.get(DublinCore.TITLE));
-		parseData.setCanonicalUrl(contentHandler.getCanonicalUrl());
 
 		List<WebURL> outgoingUrls = new ArrayList<>();
 
@@ -112,6 +111,7 @@ public class Parser extends Configurable {
 		if (baseURL != null) {
 			contextURL = baseURL;
 		}
+		parseData.setCanonicalUrl(URLCanonicalizer.getCanonicalURL(contentHandler.getCanonicalUrl(), contextURL));
 
 		int urlCount = 0;
 		for (ExtractedUrlAnchorPair urlAnchorPair : contentHandler.getOutgoingUrls()) {
