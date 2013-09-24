@@ -111,7 +111,9 @@ public class Parser extends Configurable {
 		if (baseURL != null) {
 			contextURL = baseURL;
 		}
-		parseData.setCanonicalUrl(URLCanonicalizer.getCanonicalURL(contentHandler.getCanonicalUrl(), contextURL));
+		if(contentHandler.getCanonicalUrl() != null && !contentHandler.getCanonicalUrl().isEmpty()) {
+			parseData.setCanonicalUrl(URLCanonicalizer.getCanonicalURL(contentHandler.getCanonicalUrl(), contextURL));
+		}
 
 		int urlCount = 0;
 		for (ExtractedUrlAnchorPair urlAnchorPair : contentHandler.getOutgoingUrls()) {
