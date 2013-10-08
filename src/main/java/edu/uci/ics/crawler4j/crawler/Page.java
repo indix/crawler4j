@@ -42,7 +42,7 @@ public class Page {
     /**
      * This will always be the URL of this page.
      */
-    protected WebURL fetchedUrl;
+    protected WebURL canonicalUrl;
 
     /**
      * The content of this page in binary format.
@@ -80,32 +80,31 @@ public class Page {
 
 	public Page(WebURL url) {
 		this.url = url;
-		this.fetchedUrl = url;
+		this.canonicalUrl = url;
 	}
 
 	public WebURL getWebURL() {
 		return url;
 	}
 
-	public WebURL getFetchedUrl() {
-	    return fetchedUrl;
+	public WebURL getCanonicalUrl() {
+	    return canonicalUrl;
 	}
 
 	public void setWebURL(WebURL url) {
-        this.fetchedUrl = url;
 		this.url = url;
 	}
 
 	public void setCanonicalUrl(String canonicalUrl) {
 		if(canonicalUrl != null && !canonicalUrl.isEmpty()) {
 			WebURL canonicalWebUrl = new WebURL();
-			canonicalWebUrl.setAnchor(fetchedUrl.getAnchor());
-			canonicalWebUrl.setDepth(fetchedUrl.getDepth());
-			canonicalWebUrl.setDocid(fetchedUrl.getDocid());
-			canonicalWebUrl.setParentDocid(fetchedUrl.getParentDocid());
-			canonicalWebUrl.setParentUrl(fetchedUrl.getParentUrl());
+			canonicalWebUrl.setAnchor(this.url.getAnchor());
+			canonicalWebUrl.setDepth(this.url.getDepth());
+			canonicalWebUrl.setDocid(this.url.getDocid());
+			canonicalWebUrl.setParentDocid(this.url.getParentDocid());
+			canonicalWebUrl.setParentUrl(this.url.getParentUrl());
 			canonicalWebUrl.setURL(canonicalUrl);
-			this.url = canonicalWebUrl;
+			this.canonicalUrl = canonicalWebUrl;
 		}
 	}
 
