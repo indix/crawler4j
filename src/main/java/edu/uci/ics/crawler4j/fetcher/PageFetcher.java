@@ -39,6 +39,7 @@ import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
@@ -52,6 +53,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -70,6 +73,7 @@ public class PageFetcher extends Configurable {
 	protected long lastFetchTime = 0;
 
 	protected IdleConnectionMonitorThread connectionMonitorThread = null;
+    protected Map<String, String> customCookies = new HashMap<String, String>();
 
 	public PageFetcher(CrawlConfig config) {
 		super(config);
@@ -101,6 +105,8 @@ public class PageFetcher extends Configurable {
 		connectionManager.setMaxTotal(config.getMaxTotalConnections());
 		connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
 		httpClient = new DefaultHttpClient(connectionManager, params);
+        customCookies.clear();
+        customCookies.putAll(config.getCustomCookies());
 
 		if (config.getProxyHost() != null) {
 
@@ -169,6 +175,9 @@ public class PageFetcher extends Configurable {
             // Without this we get killed w/lots of threads, due to sync() on single cookie store.
             HttpContext localContext = new BasicHttpContext();
             CookieStore cookieStore = new BasicCookieStore();
+            for (String cookieKey : customCookies.keySet()) {
+                cookieStore.addCookie(new BasicClientCookie(cookieKey, customCookies.get(cookieKey)));
+            }
             localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
 
 			HttpResponse response = httpClient.execute(get);

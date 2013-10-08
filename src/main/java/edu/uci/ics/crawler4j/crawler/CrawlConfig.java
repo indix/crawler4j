@@ -18,7 +18,9 @@
 package edu.uci.ics.crawler4j.crawler;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CrawlConfig {
 
@@ -134,6 +136,8 @@ public class CrawlConfig {
      * Supporting custom http headers.
      */
     private List<String> customHeaders = new ArrayList<String>();
+
+    private Map<String, String> customCookies = new HashMap<String, String>();
 
 	public CrawlConfig() {
 	}
@@ -392,6 +396,21 @@ public class CrawlConfig {
         if(customHeaders != null) {
             this.customHeaders = customHeaders;
         }
+    }
+
+    public Map<String, String> getCustomCookies() {
+        return this.customCookies;
+    }
+
+    public void setCustomCookies(Map<String, String> customCookies) {
+        if(customCookies != null) {
+            this.customCookies.clear();
+            this.customCookies.putAll(customCookies);
+        }
+    }
+
+    public void addCustomCookie(String key, String value) {
+        this.customCookies.put(key, value);
     }
 
     @Override
