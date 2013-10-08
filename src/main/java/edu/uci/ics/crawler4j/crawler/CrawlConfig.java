@@ -17,10 +17,7 @@
 
 package edu.uci.ics.crawler4j.crawler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CrawlConfig {
 
@@ -133,14 +130,13 @@ public class CrawlConfig {
 	private String proxyPassword = null;
 
     /**
-     * Supporting custom http headers.
+     * Supporting custom http headers/cookies.
      */
-    private List<String> customHeaders = new ArrayList<String>();
+    private Map<String, String> customHeaders = new Hashtable<String, String>();
 
-    private Map<String, String> customCookies = new HashMap<String, String>();
+    private Map<String, String> customCookies = new Hashtable<String, String>();
 
-	public CrawlConfig() {
-	}
+	public CrawlConfig() {}
 
 	/**
 	 * Validates the configs specified by this instance.
@@ -388,14 +384,19 @@ public class CrawlConfig {
 		this.proxyPassword = proxyPassword;
 	}
 
-    public List<String> getCustomHeaders() {
+    public Map<String, String> getCustomHeaders() {
         return customHeaders;
     }
 
-    public void setCustomHeaders(List<String> customHeaders) {
+    public void setCustomHeaders(Map<String, String> customHeaders) {
         if(customHeaders != null) {
-            this.customHeaders = customHeaders;
+            this.customHeaders.clear();
+            this.customHeaders.putAll(customHeaders);
         }
+    }
+
+    public void addCustomHeader(String key, String value) {
+        this.customHeaders.put(key, value);
     }
 
     public Map<String, String> getCustomCookies() {

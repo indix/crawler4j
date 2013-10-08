@@ -73,7 +73,6 @@ public class PageFetcher extends Configurable {
 	protected long lastFetchTime = 0;
 
 	protected IdleConnectionMonitorThread connectionMonitorThread = null;
-    protected Map<String, String> customCookies = new HashMap<String, String>();
 
 	public PageFetcher(CrawlConfig config) {
 		super(config);
@@ -105,8 +104,6 @@ public class PageFetcher extends Configurable {
 		connectionManager.setMaxTotal(config.getMaxTotalConnections());
 		connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
 		httpClient = new DefaultHttpClient(connectionManager, params);
-        customCookies.clear();
-        customCookies.putAll(config.getCustomCookies());
 
 		if (config.getProxyHost() != null) {
 
@@ -165,18 +162,16 @@ public class PageFetcher extends Configurable {
 			get.addHeader("Accept-Encoding", "gzip");
             get.addHeader("Accept", "*/*");
 
-            for (final String header: config.getCustomHeaders()) {
-                String name = header.split(":")[0];
-                String value = header.split(":")[1];
-                get.addHeader(name, value);
+            for (Map.Entry<String, String> entry : config.getCustomHeaders().entrySet()) {
+                get.addHeader(entry.getKey(), entry.getKey());
             }
 
             // Create a local instance of cookie store, and bind to local context
             // Without this we get killed w/lots of threads, due to sync() on single cookie store.
             HttpContext localContext = new BasicHttpContext();
             CookieStore cookieStore = new BasicCookieStore();
-            for (String cookieKey : customCookies.keySet()) {
-                cookieStore.addCookie(new BasicClientCookie(cookieKey, customCookies.get(cookieKey)));
+            for (Map.Entry<String, String> entry : config.getCustomCookies().entrySet()) {
+                cookieStore.addCookie(new BasicClientCookie(entry.getKey(), entry.getValue()));
             }
             localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
 
