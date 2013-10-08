@@ -17,6 +17,7 @@
 
 package edu.uci.ics.crawler4j.parser;
 
+import edu.uci.ics.crawler4j.util.Util;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -57,6 +58,8 @@ public class HtmlContentHandler extends DefaultHandler {
 	private boolean isWithinBodyElement;
 	private StringBuilder bodyText;
 
+	private boolean entirePageNoFollow;
+
 	private List<ExtractedUrlAnchorPair> outgoingUrls;
 
 	private ExtractedUrlAnchorPair curUrl = null;
@@ -67,6 +70,7 @@ public class HtmlContentHandler extends DefaultHandler {
 		isWithinBodyElement = false;
 		bodyText = new StringBuilder();
 		outgoingUrls = new ArrayList<>();
+		entirePageNoFollow = false;
 	}
 
 	@Override
@@ -76,14 +80,19 @@ public class HtmlContentHandler extends DefaultHandler {
 		if (element == Element.A || element == Element.AREA || element == Element.LINK) {
 			String href = attributes.getValue("href");
 			if (href != null) {
-				anchorFlag = true;
-				curUrl = new ExtractedUrlAnchorPair();
-				curUrl.setHref(href);
-				outgoingUrls.add(curUrl);
+				Boolean followUrl = true;
 
-				String relCanonical = attributes.getValue("rel");
-				if(relCanonical != null && relCanonical.equals("canonical")) {
-				    canonicalUrl = href;
+				String rel = attributes.getValue("rel");
+				if(Util.isNotEmpty(rel)) {
+					if(rel.equals("canonical")) canonicalUrl = href;
+					else if(rel.equals("nofollow")) followUrl = false;
+				}
+
+				if(followUrl && !entirePageNoFollow) {
+					anchorFlag = true;
+					curUrl = new ExtractedUrlAnchorPair();
+					curUrl.setHref(href);
+					outgoingUrls.add(curUrl);
 				}
 			}
 			return;
@@ -121,9 +130,12 @@ public class HtmlContentHandler extends DefaultHandler {
 		}
 
 		if (element == Element.META) {
+			String robots = attributes.getValue("name");
 			String equiv = attributes.getValue("http-equiv");
 			String content = attributes.getValue("content");
-			if (equiv != null && content != null) {
+			if(Util.isNotEmpty(robots) && Util.isNotEmpty(content) && content.equals("nofollow")) {
+				entirePageNoFollow = true;
+			} else if (equiv != null && content != null) {
 				equiv = equiv.toLowerCase();
 
 				// http-equiv="refresh" content="0;URL=http://foo.bar/..."
@@ -132,19 +144,25 @@ public class HtmlContentHandler extends DefaultHandler {
 					if (pos != -1) {
 						metaRefresh = content.substring(pos + 4);
 					}
-					curUrl = new ExtractedUrlAnchorPair();
-					curUrl.setHref(metaRefresh);
-					outgoingUrls.add(curUrl);
+
+					if(!entirePageNoFollow) {
+						curUrl = new ExtractedUrlAnchorPair();
+						curUrl.setHref(metaRefresh);
+						outgoingUrls.add(curUrl);
+					}
 				}
 
 				// http-equiv="location" content="http://foo.bar/..."
 				if (equiv.equals("location") && (metaLocation == null)) {
 					metaLocation = content;
-					curUrl = new ExtractedUrlAnchorPair();
-					curUrl.setHref(metaRefresh);
-					outgoingUrls.add(curUrl);
+					if(!entirePageNoFollow) {
+						curUrl = new ExtractedUrlAnchorPair();
+						curUrl.setHref(metaRefresh);
+						outgoingUrls.add(curUrl);
+					}
 				}
 			}
+
 			return;
 		}
 
