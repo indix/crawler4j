@@ -22,10 +22,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HtmlContentHandler extends DefaultHandler {
 
@@ -133,7 +130,7 @@ public class HtmlContentHandler extends DefaultHandler {
 			String robots = attributes.getValue("name");
 			String equiv = attributes.getValue("http-equiv");
 			String content = attributes.getValue("content");
-			if(Util.isNotEmpty(robots) && Util.isNotEmpty(content) && content.equals("nofollow")) {
+			if(Util.isNotEmpty(robots) && Util.isNotEmpty(content) && Arrays.asList(content.split(",")).contains("nofollow")) {
 				entirePageNoFollow = true;
 			} else if (equiv != null && content != null) {
 				equiv = equiv.toLowerCase();
