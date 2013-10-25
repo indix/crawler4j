@@ -68,10 +68,6 @@ public class PageFetcher extends Configurable {
 
 	protected DefaultHttpClient httpClient;
 
-	protected final Object mutex = new Object();
-
-	protected long lastFetchTime = 0;
-
 	protected IdleConnectionMonitorThread connectionMonitorThread = null;
 
 	public PageFetcher(CrawlConfig config) {
@@ -152,13 +148,6 @@ public class PageFetcher extends Configurable {
 		HttpGet get = null;
 		try {
 			get = new HttpGet(toFetchURL);
-			synchronized (mutex) {
-				long now = (new Date()).getTime();
-				if (now - lastFetchTime < config.getPolitenessDelay()) {
-					Thread.sleep(config.getPolitenessDelay() - (now - lastFetchTime));
-				}
-				lastFetchTime = (new Date()).getTime();
-			}
 			get.addHeader("Accept-Encoding", "gzip");
             get.addHeader("Accept", "*/*");
 
@@ -230,18 +219,17 @@ public class PageFetcher extends Configurable {
 				fetchResult.setStatusCode(HttpStatus.SC_OK);
 				return fetchResult;
 
-			}
-			
+            } else {
+               logger.error("Failed: Fetched HttpEntity Null " + webUrl.getURL());
+            }
+
 			get.abort();
 			
 		} catch (IOException e) {
 			logger.error("Fatal transport error: " + e.getMessage() + " while fetching " + toFetchURL
-					+ " (link found in doc #" + webUrl.getParentDocid() + ")");
+                       + " (link found in doc #" + webUrl.getParentDocid() + ")");
 			fetchResult.setStatusCode(CustomFetchStatus.FatalTransportError);
 			return fetchResult;
-		} catch (IllegalStateException e) {
-			// ignoring exceptions that occur because of not registering https
-			// and other schemes
 		} catch (Exception e) {
 			if (e.getMessage() == null) {
 				logger.error("Error while fetching " + webUrl.getURL(), e);
@@ -258,7 +246,7 @@ public class PageFetcher extends Configurable {
 			}
 		}
 		fetchResult.setStatusCode(CustomFetchStatus.UnknownError);
-		logger.error("Failed: Unknown error occurred., while fetching " + webUrl.getURL());
+		logger.error("Failed: Unknown error occurred while fetching " + webUrl.getURL());
 		return fetchResult;
 	}
 
