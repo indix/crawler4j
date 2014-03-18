@@ -88,11 +88,7 @@ public class PageFetcher extends Configurable {
         params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
 		params.setBooleanParameter("http.protocol.handle-redirects", false);
 
-		SchemeRegistry schemeRegistry = new SchemeRegistry();
-		schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-		schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
-
-		connectionManager = new PoolingClientConnectionManager(schemeRegistry);
+		connectionManager = new PoolingClientConnectionManager();
 		connectionManager.setMaxTotal(config.getMaxTotalConnections());
 		connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
 		httpClient = new DefaultHttpClient(connectionManager, params);
