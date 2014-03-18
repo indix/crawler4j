@@ -86,15 +86,11 @@ public class PageFetcher extends Configurable {
 
         // FIX for #136 - JVM crash while running crawler on Cent OS 6.2 - http://code.google.com/p/crawler4j/issues/detail?id=136
         params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
-
 		params.setBooleanParameter("http.protocol.handle-redirects", false);
 
 		SchemeRegistry schemeRegistry = new SchemeRegistry();
 		schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
-
-		if (config.isIncludeHttpsPages()) {
-			schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
-		}
+		schemeRegistry.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
 
 		connectionManager = new PoolingClientConnectionManager(schemeRegistry);
 		connectionManager.setMaxTotal(config.getMaxTotalConnections());
