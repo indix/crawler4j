@@ -94,7 +94,6 @@ public class PageFetcher extends Configurable {
 		httpClient = new DefaultHttpClient(connectionManager, params);
 
 		if (config.getProxyHost() != null) {
-
 			if (config.getProxyUsername() != null) {
 				httpClient.getCredentialsProvider().setCredentials(
 						new AuthScope(config.getProxyHost(), config.getProxyPort()),
@@ -138,6 +137,9 @@ public class PageFetcher extends Configurable {
 		PageFetchResult fetchResult = new PageFetchResult();
 		String toFetchURL = webUrl.getURL();
 		HttpGet get = null;
+
+        String proxyConnection = config.getProxyHost() != null ? ", Via-Proxy" : ", Direct-Crawl";
+
 		try {
 			get = new HttpGet(toFetchURL);
 			get.addHeader("Accept-Encoding", "gzip");
@@ -173,7 +175,7 @@ public class PageFetcher extends Configurable {
 						fetchResult.setStatusCode(statusCode);
 						return fetchResult;
 					}
-					logger.info("Failed: " + response.getStatusLine().toString() + ", while fetching " + toFetchURL);
+					logger.info("Failed: " + response.getStatusLine().toString() + ", while fetching " + toFetchURL + proxyConnection);
 				}
 				fetchResult.setStatusCode(response.getStatusLine().getStatusCode());
 				return fetchResult;
@@ -204,7 +206,7 @@ public class PageFetcher extends Configurable {
 				if (size > config.getMaxDownloadSize()) {
 					fetchResult.setStatusCode(CustomFetchStatus.PageTooBig);
 					get.abort();
-					logger.error("Failed: Page Size (" + size + ") exceeded max-download-size (" + config.getMaxDownloadSize() + ")");
+					logger.error("Failed: Page Size (" + size + ") exceeded max-download-size (" + config.getMaxDownloadSize() + ")" + proxyConnection);
 					return fetchResult;
 				}
 
@@ -212,21 +214,21 @@ public class PageFetcher extends Configurable {
 				return fetchResult;
 
             } else {
-               logger.error("Failed: Fetched HttpEntity Null " + webUrl.getURL());
+               logger.error("Failed: Fetched HttpEntity Null " + webUrl.getURL() + proxyConnection);
             }
 
 			get.abort();
 			
 		} catch (IOException e) {
 			logger.error("Fatal transport error: " + e.getMessage() + " while fetching " + toFetchURL
-                       + " (link found in doc #" + webUrl.getParentDocid() + ")");
+                       + " (link found in doc #" + webUrl.getParentDocid() + ")" + proxyConnection);
 			fetchResult.setStatusCode(CustomFetchStatus.FatalTransportError);
 			return fetchResult;
 		} catch (Exception e) {
 			if (e.getMessage() == null) {
-				logger.error("Error while fetching " + webUrl.getURL(), e);
+				logger.error("Error while fetching " + webUrl.getURL() + proxyConnection, e);
 			} else {
-				logger.error(e.getMessage() + " while fetching " + webUrl.getURL());
+				logger.error(e.getMessage() + " while fetching " + webUrl.getURL() + proxyConnection);
 			}
 		} finally {
 			try {
@@ -238,7 +240,7 @@ public class PageFetcher extends Configurable {
 			}
 		}
 		fetchResult.setStatusCode(CustomFetchStatus.UnknownError);
-		logger.error("Failed: Unknown error occurred while fetching " + webUrl.getURL());
+		logger.error("Failed: Unknown error occurred while fetching " + webUrl.getURL() + proxyConnection);
 		return fetchResult;
 	}
 
