@@ -20,6 +20,7 @@ package edu.uci.ics.crawler4j.fetcher;
 import java.io.EOFException;
 import java.io.IOException;
 
+import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
@@ -74,8 +75,12 @@ public class PageFetchResult {
 	}
 
 	public boolean fetchContent(Page page) {
+        return fetchContent(page, Integer.MAX_VALUE);
+	}
+
+	public boolean fetchContent(Page page, int maxLength) {
 		try {
-			page.load(entity);
+			page.load(entity, maxLength);
 			page.setFetchResponseHeaders(responseHeaders);
 			return true;
 		} catch (Exception e) {

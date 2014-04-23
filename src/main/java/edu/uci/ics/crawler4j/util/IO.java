@@ -17,6 +17,10 @@
 
 package edu.uci.ics.crawler4j.util;
 
+import edu.uci.ics.crawler4j.crawler.CrawlConfig;
+import org.apache.http.HttpEntity;
+import org.apache.http.util.ByteArrayBuffer;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -56,4 +60,46 @@ public class IO {
 			e.printStackTrace();
 		}
 	}
+
+    /**
+     * TAKEN from : org.apache.http.util.EntityUtils
+     *
+     * Read the contents of an entity and return it as a byte array.
+     *
+     * @param entity
+     * @return byte array containing the entity content. May be null if
+     *   {@link org.apache.http.HttpEntity#getContent()} is null.
+     * @throws IOException if an error occurs reading the input stream
+     * @throws IllegalArgumentException if entity is null or if content length > Integer.MAX_VALUE
+     */
+    public static byte[] toByteArray(final HttpEntity entity, final int maxContentLength) throws IOException {
+        if (entity == null) {
+            throw new IllegalArgumentException("HTTP entity may not be null");
+        }
+        InputStream instream = entity.getContent();
+        if (instream == null) {
+            return null;
+        }
+        try {
+            if (entity.getContentLength() > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("HTTP entity too large to be buffered in memory");
+            }
+            int i = -1;//(int)entity.getContentLength();
+            if (i < 0) {
+                i = 4096;
+            }
+            ByteArrayBuffer buffer = new ByteArrayBuffer(i);
+            byte[] tmp = new byte[4096];
+            int bytesRead, totalBytes = 0;
+            while((bytesRead = instream.read(tmp)) != -1) {
+                totalBytes += bytesRead;
+                if (totalBytes > maxContentLength) return new byte[]{};
+
+                buffer.append(tmp, 0, bytesRead);
+            }
+            return buffer.toByteArray();
+        } finally {
+            instream.close();
+        }
+    }
 }

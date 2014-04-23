@@ -19,6 +19,7 @@ package edu.uci.ics.crawler4j.crawler;
 
 import edu.uci.ics.crawler4j.parser.ParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
+import edu.uci.ics.crawler4j.util.IO;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
@@ -112,7 +113,7 @@ public class Page {
      * Loads the content of this page from a fetched
      * HttpEntity.
      */
-	public void load(HttpEntity entity) throws Exception {
+	public void load(HttpEntity entity, int maxLength) throws Exception {
 
 		contentType = null;
 		Header type = entity.getContentType();
@@ -131,7 +132,7 @@ public class Page {
 			contentCharset = charset.displayName();
 		}
 
-		contentData = EntityUtils.toByteArray(entity);
+		contentData = IO.toByteArray(entity, maxLength);
 	}
 
 	/**
