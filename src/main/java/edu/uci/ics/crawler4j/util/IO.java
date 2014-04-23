@@ -93,7 +93,7 @@ public class IO {
             int bytesRead, totalBytes = 0;
             while((bytesRead = instream.read(tmp)) != -1) {
                 totalBytes += bytesRead;
-                if (totalBytes > maxContentLength) return new byte[]{};
+                if (maxContentLength != -1 && totalBytes > maxContentLength) return new byte[]{}; //maxContentLength = -1, poor man's feature flag
 
                 buffer.append(tmp, 0, bytesRead);
             }
