@@ -20,6 +20,8 @@ package edu.uci.ics.crawler4j.util;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import org.apache.http.HttpEntity;
 import org.apache.http.util.ByteArrayBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -29,6 +31,8 @@ import java.nio.channels.FileChannel;
  * @author Yasser Ganjisaffar <lastname at gmail dot com>
  */
 public class IO {
+
+    private static final Logger logger = LoggerFactory.getLogger(IO.class);
 
 	public static boolean deleteFolder(File folder) {
 		return deleteFolderContents(folder) && folder.delete();
@@ -93,7 +97,10 @@ public class IO {
             int bytesRead, totalBytes = 0;
             while((bytesRead = instream.read(tmp)) != -1) {
                 totalBytes += bytesRead;
-                if (maxContentLength != -1 && totalBytes > maxContentLength) return new byte[]{}; //maxContentLength = -1, poor man's feature flag
+                if (maxContentLength != -1 && totalBytes > maxContentLength) {
+                    logger.warn("SKIPPING Large Content, bytes read :" + totalBytes);
+                    return new byte[]{}; //maxContentLength = -1, poor man's feature flag
+                }
 
                 buffer.append(tmp, 0, bytesRead);
             }
