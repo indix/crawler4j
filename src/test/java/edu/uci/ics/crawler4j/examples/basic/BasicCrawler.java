@@ -66,7 +66,7 @@ public class BasicCrawler extends WebCrawler {
 		System.out.println("Path: '" + path + "'");
 		System.out.println("Parent page: " + parentUrl);
 		System.out.println("Anchor text: " + anchor);
-		
+
 		if (page.getParseData() instanceof HtmlParseData) {
 			HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
 			String text = htmlParseData.getText();
