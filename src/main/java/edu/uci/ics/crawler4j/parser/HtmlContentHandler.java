@@ -29,7 +29,7 @@ public class HtmlContentHandler extends DefaultHandler {
 	private final int MAX_ANCHOR_LENGTH = 100;
 
 	private enum Element {
-		A, AREA, LINK, IFRAME, FRAME, EMBED, IMG, BASE, META, BODY
+		A, IFRAME, FRAME, EMBED, BASE, META, BODY
 	}
 
 	private static class HtmlFactory {
@@ -74,7 +74,7 @@ public class HtmlContentHandler extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 		Element element = HtmlFactory.getElement(localName);
 
-		if (element == Element.A || element == Element.AREA || element == Element.LINK) {
+		if (element == Element.A) {
 			String href = attributes.getValue("href");
 			if (href != null) {
 				Boolean followUrl = true;
@@ -91,16 +91,6 @@ public class HtmlContentHandler extends DefaultHandler {
 					curUrl.setHref(href);
 					outgoingUrls.add(curUrl);
 				}
-			}
-			return;
-		}
-
-		if (element == Element.IMG) {
-			String imgSrc = attributes.getValue("src");
-			if (imgSrc != null) {
-				curUrl = new ExtractedUrlAnchorPair();
-				curUrl.setHref(imgSrc);
-				outgoingUrls.add(curUrl);
 			}
 			return;
 		}
@@ -171,7 +161,7 @@ public class HtmlContentHandler extends DefaultHandler {
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
 		Element element = HtmlFactory.getElement(localName);
-		if (element == Element.A || element == Element.AREA || element == Element.LINK) {
+		if (element == Element.A) {
 			anchorFlag = false;
 			if (curUrl != null) {
 				String anchor = anchorText.toString().replaceAll("\n", " ").replaceAll("\t", " ").trim();
