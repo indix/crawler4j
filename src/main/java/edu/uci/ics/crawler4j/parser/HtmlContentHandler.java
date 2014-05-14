@@ -29,7 +29,7 @@ public class HtmlContentHandler extends DefaultHandler {
 	private final int MAX_ANCHOR_LENGTH = 100;
 
 	private enum Element {
-		A, IFRAME, FRAME, EMBED, BASE, META, BODY
+		A, IFRAME, FRAME, BASE, META, BODY
 	}
 
 	private static class HtmlFactory {
@@ -95,7 +95,7 @@ public class HtmlContentHandler extends DefaultHandler {
 			return;
 		}
 
-		if (element == Element.IFRAME || element == Element.FRAME || element == Element.EMBED) {
+		if (element == Element.IFRAME || element == Element.FRAME) {
 			String src = attributes.getValue("src");
 			if (src != null) {
 				curUrl = new ExtractedUrlAnchorPair();
