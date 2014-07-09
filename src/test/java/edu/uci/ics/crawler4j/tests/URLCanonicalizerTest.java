@@ -76,5 +76,18 @@ public class URLCanonicalizerTest extends TestCase {
 		assertEquals("http://www.pier1.com/Bright-Chenille-Striped-Rug/2527614,default,pd.html",
 			URLCanonicalizer.getCanonicalURL("/Bright-Chenille-Striped-Rug/2527614,default,pd.html", "http://www.pier1.com/Bright-Chenille-Striped-Rug/2527614,default,pd.html"));
 
-	}
+        assertEquals("http://www.bedbathandbeyond.com/store/product/orthaheel-gemma-women-39-s-leopard-slippers/3241401?Keyword=Orthaheel%60",
+                URLCanonicalizer.getEncodedCanonicalURL("http://www.bedbathandbeyond.com/store/product/orthaheel-gemma-women-39-s-leopard-slippers/3241401?Keyword=Orthaheel`"));
+
+        assertEquals("http://www.wrapables.com/categories.php?category=Gift-Ideas%2FBy-Occasion%2FWedding%7B47%7DShower",
+                URLCanonicalizer.getEncodedCanonicalURL("http://www.wrapables.com/categories.php?category=Gift-Ideas/By-Occasion/Wedding{47}Shower"));
+
+        assertEquals("http://www.zephyrsports.com/product/EF-2445-2279067/Elite-Force-M4M16-Universal-140rd-Mid-Cap-Airsoft-Magazines---10-Pack---Dark-Earth.html?catalog=HOMEPAGE&keywords=dye%5C&x=0&y=0",
+                URLCanonicalizer.getEncodedCanonicalURL("http://www.zephyrsports.com/product/EF-2445-2279067/Elite-Force-M4M16-Universal-140rd-Mid-Cap-Airsoft-Magazines---10-Pack---Dark-Earth.html?catalog=HOMEPAGE&keywords=dye\\&x=0&y=0"));
+
+        assertEquals("http://www.officesupply.com/office-supplies/general-supplies/indexing-flags-tabs/c200363.html?p=2&a3311113995=Pink&a3311114111=3%2B1%2F2%22%22",
+                URLCanonicalizer.getEncodedCanonicalURL("http://www.officesupply.com/office-supplies/general-supplies/indexing-flags-tabs/c200363.html?p=2&a3311113995=Pink&a3311114111=3+1/2%22\""));
+
+
+    }
 }
