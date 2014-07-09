@@ -37,11 +37,22 @@ public class URLCanonicalizer {
 		return getCanonicalURL(url, null);
 	}
 
-	public static String getCanonicalURL(String href, String context) {
+    public static String getEncodedCanonicalURL(String url) {
+        return getEncodedCanonicalURL(url, null);
+    }
+
+    public static String getCanonicalURL(String href, String context) {
+        return getCanonicalURL(href, context, false);
+    }
+
+    public static String getEncodedCanonicalURL(String href, String context) {
+        return getCanonicalURL(href, context, true);
+    }
+
+	public static String getCanonicalURL(String href, String context, Boolean shouldEncode) {
 
 		try {
 			URL canonicalURL = new URL(UrlResolver.resolveUrl(context == null ? "" : context, href));
-			
 			String host = canonicalURL.getHost().toLowerCase();
 			if (host == "") {
 				// This is an invalid Url.
@@ -80,11 +91,15 @@ public class URLCanonicalizer {
 
 			final List<Pair> params = createParameterMap(canonicalURL.getQuery());
 			final String queryString;
+            final String canonicalParams;
 
-			if (params != null && params.size() > 0) {
-				String canonicalParams = canonicalize(params);
-				queryString = (canonicalParams.isEmpty() ? "" : "?" + canonicalParams);
-			} else {
+            if (params != null && params.size() > 0) {
+                if(shouldEncode)
+                    canonicalParams = canonicalizeAndEncode(params, shouldEncode);
+                else
+                    canonicalParams = canonicalize(params);
+                queryString = (canonicalParams.isEmpty() ? "" : "?" + canonicalParams);
+            } else {
 				queryString = "";
 			}
 
@@ -108,7 +123,7 @@ public class URLCanonicalizer {
 
 			URL result = new URL(protocol, host, port, pathAndQueryString);
 			return result.toExternalForm();
-			
+
 		} catch (MalformedURLException ex) {
 			return null;
 		} catch (URISyntaxException ex) {
@@ -160,27 +175,37 @@ public class URLCanonicalizer {
 	 * @return Canonical form of query string.
 	 */
 	private static String canonicalize(final List<Pair> params) {
-		if (params == null || params.isEmpty()) {
-			return "";
-		}
-
-		final StringBuffer sb = new StringBuffer(100);
-		for (Pair pair : params) {
-			final String key = pair.getKey().toLowerCase();
-			if (key.equals("jsessionid") || key.equals("phpsessid") || key.equals("aspsessionid")) {
-				continue;
-			}
-			if (sb.length() > 0) {
-				sb.append('&');
-			}
-			sb.append(pair.getKey());
-			if (!pair.getValue().isEmpty()) {
-				sb.append('=');
-				sb.append(pair.getValue());
-			}
-		}
-		return sb.toString();
+		return canonicalizeAndEncode(params, false);
 	}
+
+    private static String canonicalizeAndEncode(final List<Pair> params, Boolean shouldEncode) {
+        if (params == null || params.isEmpty()) {
+            return "";
+        }
+
+        final StringBuffer sb = new StringBuffer(100);
+        for (Pair pair : params) {
+            final String key = pair.getKey().toLowerCase();
+            if (key.equals("jsessionid") || key.equals("phpsessid") || key.equals("aspsessionid")) {
+                continue;
+            }
+            if (sb.length() > 0) {
+                sb.append('&');
+            }
+            if(shouldEncode)
+                sb.append(percentEncodeRfc3986(pair.getKey()));
+            else
+                sb.append(pair.getKey());
+            if (!pair.getValue().isEmpty()) {
+                sb.append('=');
+                if(shouldEncode)
+                    sb.append(percentEncodeRfc3986(pair.getValue()));
+                else
+                    sb.append(pair.getValue());
+            }
+        }
+        return sb.toString();
+    }
 
 	/**
 	 * Percent-encode values according the RFC 3986. The built-in Java
