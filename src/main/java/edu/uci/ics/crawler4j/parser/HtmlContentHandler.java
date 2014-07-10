@@ -161,7 +161,7 @@ public class HtmlContentHandler extends DefaultHandler {
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
 		Element element = HtmlFactory.getElement(localName);
-		if (element == Element.A) {
+		if (element == Element.A || element == Element.LINK) {
 			anchorFlag = false;
 			if (curUrl != null) {
 				String anchor = anchorText.toString().replaceAll("\n", " ").replaceAll("\t", " ").trim();
