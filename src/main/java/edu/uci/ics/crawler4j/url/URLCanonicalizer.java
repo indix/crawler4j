@@ -176,11 +176,19 @@ public class URLCanonicalizer {
 			sb.append(pair.getKey());
 			if (!pair.getValue().isEmpty()) {
 				sb.append('=');
-				sb.append(pair.getValue());
+				sb.append(encodeQuotes(pair.getValue()));
 			}
 		}
 		return sb.toString();
 	}
+
+    private static String encodeQuotes(String string){
+        try {
+            return string.replace("\"", "%22");
+        } catch (Exception e) {
+            return string;
+        }
+    }
 
 	/**
 	 * Percent-encode values according the RFC 3986. The built-in Java
