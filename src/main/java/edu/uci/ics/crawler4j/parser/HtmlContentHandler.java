@@ -29,7 +29,7 @@ public class HtmlContentHandler extends DefaultHandler {
 	private final int MAX_ANCHOR_LENGTH = 100;
 
 	private enum Element {
-		A, IFRAME, FRAME, BASE, META, BODY
+		A, IFRAME, FRAME, BASE, META, BODY, LINK
 	}
 
 	private static class HtmlFactory {
@@ -74,7 +74,7 @@ public class HtmlContentHandler extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 		Element element = HtmlFactory.getElement(localName);
 
-		if (element == Element.A) {
+		if (element == Element.A || element == Element.LINK) {
 			String href = attributes.getValue("href");
 			if (href != null) {
 				Boolean followUrl = true;
