@@ -173,10 +173,10 @@ public class URLCanonicalizer {
 			if (sb.length() > 0) {
 				sb.append('&');
 			}
-			sb.append(percentEncodeRfc3986(pair.getKey()));
+			sb.append(pair.getKey());
 			if (!pair.getValue().isEmpty()) {
 				sb.append('=');
-				sb.append(percentEncodeRfc3986(pair.getValue()));
+				sb.append(pair.getValue());
 			}
 		}
 		return sb.toString();
