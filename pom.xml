@@ -4,7 +4,7 @@
 	<artifactId>crawler4j-indix</artifactId>
 	<packaging>jar</packaging>
 	<name>crawler4j</name>
-	<version>3.5.3-indix</version>
+	<version>3.5.4-indix</version>
 	<description>Open Source Web Crawler for Java</description>
 	<url>http://code.google.com/p/crawler4j/</url>
 	<licenses>
