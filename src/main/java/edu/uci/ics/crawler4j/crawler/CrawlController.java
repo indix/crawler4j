@@ -232,6 +232,7 @@ public class CrawlController extends Configurable {
 
 										frontier.close();
 										docIdServer.close();
+										pageFetcher.shutDown();
 
 										finished = true;
 										waitingLock.notifyAll();
