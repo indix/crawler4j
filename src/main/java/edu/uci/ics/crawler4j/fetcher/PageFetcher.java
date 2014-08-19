@@ -58,8 +58,6 @@ public class PageFetcher extends Configurable {
 
 	protected DefaultHttpClient httpClient;
 
-	protected IdleConnectionMonitorThread connectionMonitorThread = null;
-
 	public PageFetcher(CrawlConfig config) {
 		super(config);
 
@@ -78,10 +76,7 @@ public class PageFetcher extends Configurable {
         params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
 		params.setBooleanParameter("http.protocol.handle-redirects", false);
 
-		connectionManager = new PoolingClientConnectionManager();
-		connectionManager.setMaxTotal(config.getMaxTotalConnections());
-		connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
-		httpClient = new DefaultHttpClient(connectionManager, params);
+		httpClient = new DefaultHttpClient(params);
 
 		if (config.getProxyHost() != null) {
 			if (config.getProxyUsername() != null) {
@@ -97,8 +92,7 @@ public class PageFetcher extends Configurable {
         httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
 
             @Override
-            public void process(final HttpResponse response, final HttpContext context) throws HttpException,
-                    IOException {
+            public void process(final HttpResponse response, final HttpContext context) throws HttpException, IOException {
                 HttpEntity entity = response.getEntity();
                 if (entity == null) return;
 
@@ -115,12 +109,6 @@ public class PageFetcher extends Configurable {
             }
 
         });
-
-		if (connectionMonitorThread == null) {
-			connectionMonitorThread = new IdleConnectionMonitorThread(connectionManager);
-		}
-		connectionMonitorThread.start();
-
 	}
 
 	public PageFetchResult fetchHeader(WebURL webUrl) {
@@ -234,17 +222,6 @@ public class PageFetcher extends Configurable {
 		return fetchResult;
 	}
 
-	public synchronized void shutDown() {
-		if (connectionMonitorThread != null) {
-			connectionManager.shutdown();
-			connectionMonitorThread.shutdown();
-		}
-	}
-	
-	public HttpClient getHttpClient() {
-		return httpClient;
-	}
-
 	private static class GzipDecompressingEntity extends HttpEntityWrapper {
 
 		public GzipDecompressingEntity(final HttpEntity entity) {
@@ -253,10 +230,8 @@ public class PageFetcher extends Configurable {
 
 		@Override
 		public InputStream getContent() throws IOException, IllegalStateException {
-
 			// the wrapped entity's getContent() decides about repeatability
 			InputStream wrappedin = wrappedEntity.getContent();
-
 			return new GZIPInputStream(wrappedin);
 		}
 
@@ -265,6 +240,5 @@ public class PageFetcher extends Configurable {
 			// length of ungzipped content is not known
 			return -1;
 		}
-
 	}
 }
