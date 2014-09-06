@@ -54,8 +54,6 @@ public class PageFetcher extends Configurable {
 
 	protected static final Logger logger = LoggerFactory.getLogger(PageFetcher.class);
 
-	protected PoolingClientConnectionManager connectionManager;
-
 	protected DefaultHttpClient httpClient;
 
 	public PageFetcher(CrawlConfig config) {
@@ -116,7 +114,7 @@ public class PageFetcher extends Configurable {
 		String toFetchURL = webUrl.getURL();
 		HttpGet get = null;
 
-        String proxyConnection = config.getProxyHost() != null ? ", Via-Proxy" : ", Direct-Crawl";
+        final String proxyInfo = getProxyInfo();
 
 		try {
 			get = new HttpGet(toFetchURL);
@@ -153,7 +151,7 @@ public class PageFetcher extends Configurable {
 						fetchResult.setStatusCode(statusCode);
 						return fetchResult;
 					}
-					logger.info("Failed: " + response.getStatusLine().toString() + ", while fetching " + toFetchURL + proxyConnection);
+					logger.info("Failed: " + response.getStatusLine().toString() + ", while fetching " + toFetchURL + proxyInfo);
 				}
 				fetchResult.setStatusCode(response.getStatusLine().getStatusCode());
 				return fetchResult;
@@ -184,7 +182,7 @@ public class PageFetcher extends Configurable {
 				if (size > config.getMaxDownloadSize()) {
 					fetchResult.setStatusCode(CustomFetchStatus.PageTooBig);
 					get.abort();
-					logger.error("Failed: Page Size (" + size + ") exceeded max-download-size (" + config.getMaxDownloadSize() + ")" + proxyConnection);
+					logger.error("Failed: Page Size (" + size + ") exceeded max-download-size (" + config.getMaxDownloadSize() + ")" + proxyInfo);
 					return fetchResult;
 				}
 
@@ -192,21 +190,21 @@ public class PageFetcher extends Configurable {
 				return fetchResult;
 
             } else {
-               logger.error("Failed: Fetched HttpEntity Null " + webUrl.getURL() + proxyConnection);
+               logger.error("Failed: Fetched HttpEntity Null " + webUrl.getURL() + proxyInfo);
             }
 
 			get.abort();
 			
 		} catch (IOException e) {
 			logger.error("Fatal transport error: " + e.getMessage() + " while fetching " + toFetchURL
-                       + " (link found in doc #" + webUrl.getParentDocid() + ")" + proxyConnection);
+                       + " (link found in doc #" + webUrl.getParentDocid() + ")" + proxyInfo);
 			fetchResult.setStatusCode(CustomFetchStatus.FatalTransportError);
 			return fetchResult;
 		} catch (Exception e) {
 			if (e.getMessage() == null) {
-				logger.error("Error while fetching " + webUrl.getURL() + proxyConnection, e);
+				logger.error("Error while fetching " + webUrl.getURL() + proxyInfo, e);
 			} else {
-				logger.error(e.getMessage() + " while fetching " + webUrl.getURL() + proxyConnection);
+				logger.error(e.getMessage() + " while fetching " + webUrl.getURL() + proxyInfo);
 			}
 		} finally {
 			try {
@@ -218,9 +216,17 @@ public class PageFetcher extends Configurable {
 			}
 		}
 		fetchResult.setStatusCode(CustomFetchStatus.UnknownError);
-		logger.error("Failed: Unknown error occurred while fetching " + webUrl.getURL() + proxyConnection);
+		logger.error("Failed: Unknown error occurred while fetching " + webUrl.getURL() + proxyInfo);
 		return fetchResult;
 	}
+
+    private String getProxyInfo() {
+        if (config.getProxyHost() == null) {
+            return ", Direct-Crawl";
+        } else {
+            return String.format(", Via-Proxy=%s:%s", config.getProxyHost(), config.getProxyPort());
+        }
+    }
 
 	private static class GzipDecompressingEntity extends HttpEntityWrapper {
 
