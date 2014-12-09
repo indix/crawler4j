@@ -79,107 +79,107 @@ public class Page {
      */
     protected ParseData parseData;
 
-	public Page(WebURL url) {
-		this.url = url;
-		this.canonicalUrl = url;
-	}
+    public Page(WebURL url) {
+        this.url = url;
+        this.canonicalUrl = url;
+    }
 
-	public WebURL getWebURL() {
-		return url;
-	}
+    public WebURL getWebURL() {
+        return url;
+    }
 
-	public WebURL getCanonicalUrl() {
-	    return canonicalUrl;
-	}
+    public WebURL getCanonicalUrl() {
+        return canonicalUrl;
+    }
 
-	public void setWebURL(WebURL url) {
-		this.url = url;
-	}
+    public void setWebURL(WebURL url) {
+        this.url = url;
+    }
 
-	public void setCanonicalUrl(String canonicalUrl) {
-		if(canonicalUrl != null && !canonicalUrl.isEmpty()) {
-			WebURL canonicalWebUrl = new WebURL();
-			canonicalWebUrl.setAnchor(this.url.getAnchor());
-			canonicalWebUrl.setDepth(this.url.getDepth());
-			canonicalWebUrl.setDocid(this.url.getDocid());
-			canonicalWebUrl.setParentDocid(this.url.getParentDocid());
-			canonicalWebUrl.setParentUrl(this.url.getParentUrl());
-			canonicalWebUrl.setURL(canonicalUrl);
-			this.canonicalUrl = canonicalWebUrl;
-		}
-	}
+    public void setCanonicalUrl(String canonicalUrl) {
+        if (canonicalUrl != null && !canonicalUrl.isEmpty()) {
+            WebURL canonicalWebUrl = new WebURL();
+            canonicalWebUrl.setAnchor(this.url.getAnchor());
+            canonicalWebUrl.setDepth(this.url.getDepth());
+            canonicalWebUrl.setDocid(this.url.getDocid());
+            canonicalWebUrl.setParentDocid(this.url.getParentDocid());
+            canonicalWebUrl.setParentUrl(this.url.getParentUrl());
+            canonicalWebUrl.setURL(canonicalUrl);
+            this.canonicalUrl = canonicalWebUrl;
+        }
+    }
 
     /**
      * Loads the content of this page from a fetched
      * HttpEntity.
      */
-	public void load(HttpEntity entity, int maxLength) throws Exception {
+    public void load(HttpEntity entity, int maxLength) throws Exception {
 
-		contentType = null;
-		Header type = entity.getContentType();
-		if (type != null) {
-			contentType = type.getValue();
-		}
+        contentType = null;
+        Header type = entity.getContentType();
+        if (type != null) {
+            contentType = type.getValue();
+        }
 
-		contentEncoding = null;
-		Header encoding = entity.getContentEncoding();
-		if (encoding != null) {
-			contentEncoding = encoding.getValue();
-		}
+        contentEncoding = null;
+        Header encoding = entity.getContentEncoding();
+        if (encoding != null) {
+            contentEncoding = encoding.getValue();
+        }
 
-		Charset charset = ContentType.getOrDefault(entity).getCharset();
-		if (charset != null) {
-			contentCharset = charset.displayName();
-		}
+        Charset charset = ContentType.getOrDefault(entity).getCharset();
+        if (charset != null) {
+            contentCharset = charset.displayName();
+        }
 
-		contentData = IO.toByteArray(entity, maxLength);
-	}
+        contentData = IO.toByteArray(entity, maxLength);
+    }
 
-	/**
+    /**
      * Returns headers which were present in the response of the
      * fetch request
      */
-	public Header[] getFetchResponseHeaders() {
-		return fetchResponseHeaders;
-	}
+    public Header[] getFetchResponseHeaders() {
+        return fetchResponseHeaders;
+    }
 
-	public void setFetchResponseHeaders(Header[] headers) {
-		fetchResponseHeaders = headers;
-	}
+    public void setFetchResponseHeaders(Header[] headers) {
+        fetchResponseHeaders = headers;
+    }
 
     /**
      * Returns the parsed data generated for this page by parsers
      */
-	public ParseData getParseData() {
-		return parseData;
-	}
+    public ParseData getParseData() {
+        return parseData;
+    }
 
-	public void setParseData(ParseData parseData) {
-		this.parseData = parseData;
-	}
+    public void setParseData(ParseData parseData) {
+        this.parseData = parseData;
+    }
 
     /**
      * Returns the content of this page in binary format.
      */
-	public byte[] getContentData() {
-		return contentData;
-	}
+    public byte[] getContentData() {
+        return contentData;
+    }
 
-	public void setContentData(byte[] contentData) {
-		this.contentData = contentData;
-	}
+    public void setContentData(byte[] contentData) {
+        this.contentData = contentData;
+    }
 
     /**
      * Returns the ContentType of this page.
      * For example: "text/html; charset=UTF-8"
      */
-	public String getContentType() {
-		return contentType;
-	}
+    public String getContentType() {
+        return contentType;
+    }
 
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
-	}
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
 
     /**
      * Returns the encoding of the content.
@@ -197,12 +197,12 @@ public class Page {
      * Returns the charset of the content.
      * For example: "UTF-8"
      */
-	public String getContentCharset() {
-		return contentCharset;
-	}
+    public String getContentCharset() {
+        return contentCharset;
+    }
 
-	public void setContentCharset(String contentCharset) {
-		this.contentCharset = contentCharset;
-	}
+    public void setContentCharset(String contentCharset) {
+        this.contentCharset = contentCharset;
+    }
 
 }

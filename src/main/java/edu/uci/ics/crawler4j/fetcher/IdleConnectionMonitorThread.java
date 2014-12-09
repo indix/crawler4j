@@ -22,10 +22,10 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 
 public class IdleConnectionMonitorThread extends Thread {
-    
+
     private final PoolingClientConnectionManager connMgr;
     private volatile boolean shutdown;
-    
+
     public IdleConnectionMonitorThread(PoolingClientConnectionManager connMgr) {
         super("Connection Manager");
         this.connMgr = connMgr;
@@ -48,13 +48,13 @@ public class IdleConnectionMonitorThread extends Thread {
             // terminate
         }
     }
-    
+
     public void shutdown() {
         shutdown = true;
         synchronized (this) {
             notifyAll();
         }
     }
-    
+
 }
 

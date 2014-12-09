@@ -25,13 +25,13 @@ package edu.uci.ics.crawler4j.crawler;
  */
 public abstract class Configurable {
 
-	final protected CrawlConfig config;
-	
-	protected Configurable(CrawlConfig config) {
-		this.config = config;
-	}
-	
-	public CrawlConfig getConfig() {
-		return config;
-	}
+    final protected CrawlConfig config;
+
+    protected Configurable(CrawlConfig config) {
+        this.config = config;
+    }
+
+    public CrawlConfig getConfig() {
+        return config;
+    }
 }

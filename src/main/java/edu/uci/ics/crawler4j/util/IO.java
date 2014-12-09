@@ -34,46 +34,46 @@ public class IO {
 
     private static final Logger logger = LoggerFactory.getLogger(IO.class);
 
-	public static boolean deleteFolder(File folder) {
-		return deleteFolderContents(folder) && folder.delete();
-	}
-	
-	public static boolean deleteFolderContents(File folder) {
-		System.out.println("Deleting content of: " + folder.getAbsolutePath());
-		File[] files = folder.listFiles();
-		for (File file : files) {
-			if (file.isFile()) {
-				if (!file.delete()) {
-					return false;
-				}
-			} else {
-				if (!deleteFolder(file)) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	
-	public static void writeBytesToFile(byte[] bytes, String destination) {
-		try {
-			FileChannel fc = new FileOutputStream(destination).getChannel();
-			fc.write(ByteBuffer.wrap(bytes));
-			fc.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    public static boolean deleteFolder(File folder) {
+        return deleteFolderContents(folder) && folder.delete();
+    }
+
+    public static boolean deleteFolderContents(File folder) {
+        System.out.println("Deleting content of: " + folder.getAbsolutePath());
+        File[] files = folder.listFiles();
+        for (File file : files) {
+            if (file.isFile()) {
+                if (!file.delete()) {
+                    return false;
+                }
+            } else {
+                if (!deleteFolder(file)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static void writeBytesToFile(byte[] bytes, String destination) {
+        try {
+            FileChannel fc = new FileOutputStream(destination).getChannel();
+            fc.write(ByteBuffer.wrap(bytes));
+            fc.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * TAKEN from : org.apache.http.util.EntityUtils
-     *
+     * <p/>
      * Read the contents of an entity and return it as a byte array.
      *
      * @param entity
      * @return byte array containing the entity content. May be null if
-     *   {@link org.apache.http.HttpEntity#getContent()} is null.
-     * @throws IOException if an error occurs reading the input stream
+     * {@link org.apache.http.HttpEntity#getContent()} is null.
+     * @throws IOException              if an error occurs reading the input stream
      * @throws IllegalArgumentException if entity is null or if content length > Integer.MAX_VALUE
      */
     public static byte[] toByteArray(final HttpEntity entity, final int maxContentLength) throws IOException {
@@ -95,7 +95,7 @@ public class IO {
             ByteArrayBuffer buffer = new ByteArrayBuffer(i);
             byte[] tmp = new byte[4096];
             int bytesRead, totalBytes = 0;
-            while((bytesRead = instream.read(tmp)) != -1) {
+            while ((bytesRead = instream.read(tmp)) != -1) {
                 totalBytes += bytesRead;
                 if (maxContentLength != -1 && totalBytes > maxContentLength) {
                     logger.warn("SKIPPING Large Content, bytes read :" + totalBytes);

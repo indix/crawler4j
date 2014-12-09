@@ -52,39 +52,39 @@ import java.util.zip.GZIPInputStream;
  */
 public class PageFetcher extends Configurable {
 
-	protected static final Logger logger = LoggerFactory.getLogger(PageFetcher.class);
+    protected static final Logger logger = LoggerFactory.getLogger(PageFetcher.class);
 
-	protected DefaultHttpClient httpClient;
+    protected DefaultHttpClient httpClient;
 
-	public PageFetcher(CrawlConfig config) {
-		super(config);
+    public PageFetcher(CrawlConfig config) {
+        super(config);
 
-		HttpParams params = new BasicHttpParams();
-		HttpProtocolParamBean paramsBean = new HttpProtocolParamBean(params);
-		paramsBean.setVersion(HttpVersion.HTTP_1_1);
-		paramsBean.setContentCharset("UTF-8");
-		paramsBean.setUseExpectContinue(false);
+        HttpParams params = new BasicHttpParams();
+        HttpProtocolParamBean paramsBean = new HttpProtocolParamBean(params);
+        paramsBean.setVersion(HttpVersion.HTTP_1_1);
+        paramsBean.setContentCharset("UTF-8");
+        paramsBean.setUseExpectContinue(false);
 
-		params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
-		params.setParameter(CoreProtocolPNames.USER_AGENT, config.getUserAgentString());
-		params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.getSocketTimeout());
-		params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.getConnectionTimeout());
+        params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
+        params.setParameter(CoreProtocolPNames.USER_AGENT, config.getUserAgentString());
+        params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.getSocketTimeout());
+        params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.getConnectionTimeout());
 
         // FIX for #136 - JVM crash while running crawler on Cent OS 6.2 - http://code.google.com/p/crawler4j/issues/detail?id=136
         params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
-		params.setBooleanParameter("http.protocol.handle-redirects", false);
+        params.setBooleanParameter("http.protocol.handle-redirects", false);
 
-		httpClient = new DefaultHttpClient(params);
+        httpClient = new DefaultHttpClient(params);
 
-		if (config.getProxyHost() != null) {
-			if (config.getProxyUsername() != null) {
-				httpClient.getCredentialsProvider().setCredentials(
-						new AuthScope(config.getProxyHost(), config.getProxyPort()),
-						new UsernamePasswordCredentials(config.getProxyUsername(), config.getProxyPassword()));
-			}
+        if (config.getProxyHost() != null) {
+            if (config.getProxyUsername() != null) {
+                httpClient.getCredentialsProvider().setCredentials(
+                        new AuthScope(config.getProxyHost(), config.getProxyPort()),
+                        new UsernamePasswordCredentials(config.getProxyUsername(), config.getProxyPassword()));
+            }
 
-			HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
-			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+            HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
+            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
 
         httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
@@ -107,18 +107,18 @@ public class PageFetcher extends Configurable {
             }
 
         });
-	}
+    }
 
-	public PageFetchResult fetchHeader(WebURL webUrl) {
-		PageFetchResult fetchResult = new PageFetchResult();
-		String toFetchURL = webUrl.getURL();
-		HttpGet get = null;
+    public PageFetchResult fetchHeader(WebURL webUrl) {
+        PageFetchResult fetchResult = new PageFetchResult();
+        String toFetchURL = webUrl.getURL();
+        HttpGet get = null;
 
         final String proxyInfo = getProxyInfo();
 
-		try {
-			get = new HttpGet(toFetchURL);
-			get.addHeader("Accept-Encoding", "gzip");
+        try {
+            get = new HttpGet(toFetchURL);
+            get.addHeader("Accept-Encoding", "gzip");
             get.addHeader("Accept", "*/*");
 
             for (Map.Entry<String, String> entry : config.getCustomHeaders().entrySet()) {
@@ -134,91 +134,91 @@ public class PageFetcher extends Configurable {
             }
             localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
 
-			HttpResponse response = httpClient.execute(get);
-			fetchResult.setEntity(response.getEntity());
-			fetchResult.setResponseHeaders(response.getAllHeaders());
-			
-			int statusCode = response.getStatusLine().getStatusCode();
-			if (statusCode != HttpStatus.SC_OK) {
-				if (statusCode != HttpStatus.SC_NOT_FOUND) {
-					if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY || statusCode == HttpStatus.SC_SEE_OTHER) {
-						Header header = response.getFirstHeader("Location");
-						if (header != null) {
-							String movedToUrl = header.getValue();
-							movedToUrl = URLCanonicalizer.getCanonicalURL(movedToUrl, toFetchURL);
-							fetchResult.setMovedToUrl(movedToUrl);
-						} 
-						fetchResult.setStatusCode(statusCode);
-						return fetchResult;
-					}
-					logger.info("Failed: " + response.getStatusLine().toString() + ", while fetching " + toFetchURL + proxyInfo);
-				}
-				fetchResult.setStatusCode(response.getStatusLine().getStatusCode());
-				return fetchResult;
-			}
+            HttpResponse response = httpClient.execute(get);
+            fetchResult.setEntity(response.getEntity());
+            fetchResult.setResponseHeaders(response.getAllHeaders());
 
-			fetchResult.setFetchedUrl(toFetchURL);
-			String uri = get.getURI().toString();
-			if (!uri.equals(toFetchURL)) {
-				if (!URLCanonicalizer.getCanonicalURL(uri).equals(toFetchURL)) {
-					fetchResult.setFetchedUrl(uri);
-				}
-			}
-
-			if (fetchResult.getEntity() != null) {
-				long size = fetchResult.getEntity().getContentLength();
-				if (size == -1) {
-					Header length = response.getLastHeader("Content-Length");
-					if (length == null) {
-						length = response.getLastHeader("Content-length");
-					}
-					if (length != null) {
-						size = Integer.parseInt(length.getValue());
-					} else {
-						size = -1;
-					}
-				}
-
-				if (size > config.getMaxDownloadSize()) {
-					fetchResult.setStatusCode(CustomFetchStatus.PageTooBig);
-					get.abort();
-					logger.error("Failed: Page Size (" + size + ") exceeded max-download-size (" + config.getMaxDownloadSize() + ")" + proxyInfo);
-					return fetchResult;
-				}
-
-				fetchResult.setStatusCode(HttpStatus.SC_OK);
-				return fetchResult;
-
-            } else {
-               logger.error("Failed: Fetched HttpEntity Null " + webUrl.getURL() + proxyInfo);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_OK) {
+                if (statusCode != HttpStatus.SC_NOT_FOUND) {
+                    if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY || statusCode == HttpStatus.SC_SEE_OTHER) {
+                        Header header = response.getFirstHeader("Location");
+                        if (header != null) {
+                            String movedToUrl = header.getValue();
+                            movedToUrl = URLCanonicalizer.getCanonicalURL(movedToUrl, toFetchURL);
+                            fetchResult.setMovedToUrl(movedToUrl);
+                        }
+                        fetchResult.setStatusCode(statusCode);
+                        return fetchResult;
+                    }
+                    logger.info("Failed: " + response.getStatusLine().toString() + ", while fetching " + toFetchURL + proxyInfo);
+                }
+                fetchResult.setStatusCode(response.getStatusLine().getStatusCode());
+                return fetchResult;
             }
 
-			get.abort();
-			
-		} catch (IOException e) {
-			logger.error("Fatal transport error: " + e.getMessage() + " while fetching " + toFetchURL
-                       + " (link found in doc #" + webUrl.getParentDocid() + ")" + proxyInfo);
-			fetchResult.setStatusCode(CustomFetchStatus.FatalTransportError);
-			return fetchResult;
-		} catch (Exception e) {
-			if (e.getMessage() == null) {
-				logger.error("Error while fetching " + webUrl.getURL() + proxyInfo, e);
-			} else {
-				logger.error(e.getMessage() + " while fetching " + webUrl.getURL() + proxyInfo);
-			}
-		} finally {
-			try {
-				if (fetchResult.getEntity() == null && get != null) {
-					get.abort();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		fetchResult.setStatusCode(CustomFetchStatus.UnknownError);
-		logger.error("Failed: Unknown error occurred while fetching " + webUrl.getURL() + proxyInfo);
-		return fetchResult;
-	}
+            fetchResult.setFetchedUrl(toFetchURL);
+            String uri = get.getURI().toString();
+            if (!uri.equals(toFetchURL)) {
+                if (!URLCanonicalizer.getCanonicalURL(uri).equals(toFetchURL)) {
+                    fetchResult.setFetchedUrl(uri);
+                }
+            }
+
+            if (fetchResult.getEntity() != null) {
+                long size = fetchResult.getEntity().getContentLength();
+                if (size == -1) {
+                    Header length = response.getLastHeader("Content-Length");
+                    if (length == null) {
+                        length = response.getLastHeader("Content-length");
+                    }
+                    if (length != null) {
+                        size = Integer.parseInt(length.getValue());
+                    } else {
+                        size = -1;
+                    }
+                }
+
+                if (size > config.getMaxDownloadSize()) {
+                    fetchResult.setStatusCode(CustomFetchStatus.PageTooBig);
+                    get.abort();
+                    logger.error("Failed: Page Size (" + size + ") exceeded max-download-size (" + config.getMaxDownloadSize() + ")" + proxyInfo);
+                    return fetchResult;
+                }
+
+                fetchResult.setStatusCode(HttpStatus.SC_OK);
+                return fetchResult;
+
+            } else {
+                logger.error("Failed: Fetched HttpEntity Null " + webUrl.getURL() + proxyInfo);
+            }
+
+            get.abort();
+
+        } catch (IOException e) {
+            logger.error("Fatal transport error: " + e.getMessage() + " while fetching " + toFetchURL
+                    + " (link found in doc #" + webUrl.getParentDocid() + ")" + proxyInfo);
+            fetchResult.setStatusCode(CustomFetchStatus.FatalTransportError);
+            return fetchResult;
+        } catch (Exception e) {
+            if (e.getMessage() == null) {
+                logger.error("Error while fetching " + webUrl.getURL() + proxyInfo, e);
+            } else {
+                logger.error(e.getMessage() + " while fetching " + webUrl.getURL() + proxyInfo);
+            }
+        } finally {
+            try {
+                if (fetchResult.getEntity() == null && get != null) {
+                    get.abort();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        fetchResult.setStatusCode(CustomFetchStatus.UnknownError);
+        logger.error("Failed: Unknown error occurred while fetching " + webUrl.getURL() + proxyInfo);
+        return fetchResult;
+    }
 
     private String getProxyInfo() {
         if (config.getProxyHost() == null) {
@@ -228,23 +228,23 @@ public class PageFetcher extends Configurable {
         }
     }
 
-	private static class GzipDecompressingEntity extends HttpEntityWrapper {
+    private static class GzipDecompressingEntity extends HttpEntityWrapper {
 
-		public GzipDecompressingEntity(final HttpEntity entity) {
-			super(entity);
-		}
+        public GzipDecompressingEntity(final HttpEntity entity) {
+            super(entity);
+        }
 
-		@Override
-		public InputStream getContent() throws IOException, IllegalStateException {
-			// the wrapped entity's getContent() decides about repeatability
-			InputStream wrappedin = wrappedEntity.getContent();
-			return new GZIPInputStream(wrappedin);
-		}
+        @Override
+        public InputStream getContent() throws IOException, IllegalStateException {
+            // the wrapped entity's getContent() decides about repeatability
+            InputStream wrappedin = wrappedEntity.getContent();
+            return new GZIPInputStream(wrappedin);
+        }
 
-		@Override
-		public long getContentLength() {
-			// length of ungzipped content is not known
-			return -1;
-		}
-	}
+        @Override
+        public long getContentLength() {
+            // length of ungzipped content is not known
+            return -1;
+        }
+    }
 }

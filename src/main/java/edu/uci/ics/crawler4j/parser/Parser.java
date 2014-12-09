@@ -42,123 +42,123 @@ import java.util.List;
  */
 public class Parser extends Configurable {
 
-	protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
+    protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
-	private HtmlParser htmlParser;
-	private ParseContext parseContext;
+    private HtmlParser htmlParser;
+    private ParseContext parseContext;
 
-	public Parser(CrawlConfig config) {
-		super(config);
-		htmlParser = new HtmlParser();
-		parseContext = new ParseContext();
-	}
+    public Parser(CrawlConfig config) {
+        super(config);
+        htmlParser = new HtmlParser();
+        parseContext = new ParseContext();
+    }
 
-	public boolean parse(Page page, String contextURL) {
+    public boolean parse(Page page, String contextURL) {
 
-		if (Util.hasBinaryContent(page.getContentType())) {
-			if (!config.isIncludeBinaryContentInCrawling()) {
-				return false;
-			}
+        if (Util.hasBinaryContent(page.getContentType())) {
+            if (!config.isIncludeBinaryContentInCrawling()) {
+                return false;
+            }
 
-			page.setParseData(BinaryParseData.getInstance());
-			return true;
+            page.setParseData(BinaryParseData.getInstance());
+            return true;
 
-		} else if (Util.hasPlainTextContent(page.getContentType())) {
-			try {
-				TextParseData parseData = new TextParseData();
-				if (page.getContentCharset() == null) {
-					parseData.setTextContent(new String(page.getContentData()));
-				} else {
-					parseData.setTextContent(new String(page.getContentData(), page.getContentCharset()));
-				}
-				page.setParseData(parseData);
-				return true;
-			} catch (Exception e) {
-				logger.error(e.getMessage() + ", while parsing: " + page.getWebURL().getURL());
-			}
-			return false;
-		}
+        } else if (Util.hasPlainTextContent(page.getContentType())) {
+            try {
+                TextParseData parseData = new TextParseData();
+                if (page.getContentCharset() == null) {
+                    parseData.setTextContent(new String(page.getContentData()));
+                } else {
+                    parseData.setTextContent(new String(page.getContentData(), page.getContentCharset()));
+                }
+                page.setParseData(parseData);
+                return true;
+            } catch (Exception e) {
+                logger.error(e.getMessage() + ", while parsing: " + page.getWebURL().getURL());
+            }
+            return false;
+        }
 
-		Metadata metadata = new Metadata();
-		HtmlContentHandler contentHandler = new HtmlContentHandler();
-		InputStream inputStream = null;
-		try {
-			inputStream = new ByteArrayInputStream(page.getContentData());
-			htmlParser.parse(inputStream, contentHandler, metadata, parseContext);
-		} catch (Exception e) {
-			logger.error(e.getMessage() + ", while parsing: " + page.getWebURL().getURL());
-		} finally {
-			try {
-				if (inputStream != null) {
-					inputStream.close();
-				}
-			} catch (IOException e) {
-				logger.error(e.getMessage() + ", while parsing: " + page.getWebURL().getURL());
-			}
-		}
+        Metadata metadata = new Metadata();
+        HtmlContentHandler contentHandler = new HtmlContentHandler();
+        InputStream inputStream = null;
+        try {
+            inputStream = new ByteArrayInputStream(page.getContentData());
+            htmlParser.parse(inputStream, contentHandler, metadata, parseContext);
+        } catch (Exception e) {
+            logger.error(e.getMessage() + ", while parsing: " + page.getWebURL().getURL());
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage() + ", while parsing: " + page.getWebURL().getURL());
+            }
+        }
 
-		if (page.getContentCharset() == null) {
-			page.setContentCharset(metadata.get("Content-Encoding"));
-		}
+        if (page.getContentCharset() == null) {
+            page.setContentCharset(metadata.get("Content-Encoding"));
+        }
 
-		HtmlParseData parseData = new HtmlParseData();
-		parseData.setText(contentHandler.getBodyText().trim());
-		parseData.setTitle(metadata.get(DublinCore.TITLE));
+        HtmlParseData parseData = new HtmlParseData();
+        parseData.setText(contentHandler.getBodyText().trim());
+        parseData.setTitle(metadata.get(DublinCore.TITLE));
 
-		List<WebURL> outgoingUrls = new ArrayList<>();
+        List<WebURL> outgoingUrls = new ArrayList<>();
 
-		String baseURL = contentHandler.getBaseUrl();
-		if (baseURL != null) {
-			contextURL = baseURL;
-		}
-		if(contentHandler.getCanonicalUrl() != null && !contentHandler.getCanonicalUrl().isEmpty()) {
-			parseData.setCanonicalUrl(URLCanonicalizer.getCanonicalURL(contentHandler.getCanonicalUrl(), contextURL));
-		}
+        String baseURL = contentHandler.getBaseUrl();
+        if (baseURL != null) {
+            contextURL = baseURL;
+        }
+        if (contentHandler.getCanonicalUrl() != null && !contentHandler.getCanonicalUrl().isEmpty()) {
+            parseData.setCanonicalUrl(URLCanonicalizer.getCanonicalURL(contentHandler.getCanonicalUrl(), contextURL));
+        }
 
-		int urlCount = 0;
-		for (ExtractedUrlAnchorPair urlAnchorPair : contentHandler.getOutgoingUrls()) {
-			String href = urlAnchorPair.getHref();
-			href = href.trim();
-			if (href.length() == 0) {
-				continue;
-			}
-			String hrefWithoutProtocol = href.toLowerCase();
-			if (href.startsWith("http://")) {
-				hrefWithoutProtocol = href.substring(7);
-			}
-			if (!hrefWithoutProtocol.contains("javascript:") && !hrefWithoutProtocol.contains("mailto:")
-					&& !hrefWithoutProtocol.contains("@")) {
-				String url = URLCanonicalizer.getCanonicalURL(href, contextURL);
-				if (url != null) {
-					WebURL webURL = new WebURL();
-					webURL.setURL(url);
-					webURL.setAnchor(urlAnchorPair.getAnchor());
-					outgoingUrls.add(webURL);
-					urlCount++;
-					if (urlCount > config.getMaxOutgoingLinksToFollow()) {
-						break;
-					}
-				}
-			}
-		}
+        int urlCount = 0;
+        for (ExtractedUrlAnchorPair urlAnchorPair : contentHandler.getOutgoingUrls()) {
+            String href = urlAnchorPair.getHref();
+            href = href.trim();
+            if (href.length() == 0) {
+                continue;
+            }
+            String hrefWithoutProtocol = href.toLowerCase();
+            if (href.startsWith("http://")) {
+                hrefWithoutProtocol = href.substring(7);
+            }
+            if (!hrefWithoutProtocol.contains("javascript:") && !hrefWithoutProtocol.contains("mailto:")
+                    && !hrefWithoutProtocol.contains("@")) {
+                String url = URLCanonicalizer.getCanonicalURL(href, contextURL);
+                if (url != null) {
+                    WebURL webURL = new WebURL();
+                    webURL.setURL(url);
+                    webURL.setAnchor(urlAnchorPair.getAnchor());
+                    outgoingUrls.add(webURL);
+                    urlCount++;
+                    if (urlCount > config.getMaxOutgoingLinksToFollow()) {
+                        break;
+                    }
+                }
+            }
+        }
 
-		parseData.setOutgoingUrls(outgoingUrls);
+        parseData.setOutgoingUrls(outgoingUrls);
 
-		try {
-			if (page.getContentCharset() == null) {
-				parseData.setHtml(new String(page.getContentData()));
-			} else {
-				parseData.setHtml(new String(page.getContentData(), page.getContentCharset()));
-			}
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return false;
-		}
+        try {
+            if (page.getContentCharset() == null) {
+                parseData.setHtml(new String(page.getContentData()));
+            } else {
+                parseData.setHtml(new String(page.getContentData(), page.getContentCharset()));
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return false;
+        }
 
-		page.setParseData(parseData);
-		page.setCanonicalUrl(parseData.getCanonicalUrl());
-		return true;
+        page.setParseData(parseData);
+        page.setCanonicalUrl(parseData.getCanonicalUrl());
+        return true;
 
-	}
+    }
 
 }

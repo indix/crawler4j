@@ -19,7 +19,7 @@ package edu.uci.ics.crawler4j.parser;
 
 public interface ParseData {
 
-	@Override
+    @Override
     public String toString();
-	
+
 }

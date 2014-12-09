@@ -32,58 +32,58 @@ import edu.uci.ics.crawler4j.url.WebURL;
 /**
  * This class maintains the list of pages which are
  * assigned to crawlers but are not yet processed.
- * It is used for resuming a previous crawl. 
- * 
+ * It is used for resuming a previous crawl.
+ *
  * @author Yasser Ganjisaffar <lastname at gmail dot com>
  */
 public class InProcessPagesDB extends WorkQueues {
 
-	private static final Logger logger = LoggerFactory.getLogger(InProcessPagesDB.class);
-		
-	public InProcessPagesDB(Environment env) throws DatabaseException {
-		super(env, "InProcessPagesDB", true);
-		long docCount = getLength();
-		if (docCount > 0) {
-			logger.info("Loaded " + docCount + " URLs that have been in process in the previous crawl.");
-		}
-	}
+    private static final Logger logger = LoggerFactory.getLogger(InProcessPagesDB.class);
 
-	public boolean removeURL(WebURL webUrl) {
-		synchronized (mutex) {
-			try {
-				DatabaseEntry key = getDatabaseEntryKey(webUrl);				
-				Cursor cursor = null;
-				OperationStatus result;
-				DatabaseEntry value = new DatabaseEntry();
-				Transaction txn = env.beginTransaction(null, null);
-				try {
-					cursor = urlsDB.openCursor(txn, null);
-					result = cursor.getSearchKey(key, value, null);
-					
-					if (result == OperationStatus.SUCCESS) {
-						result = cursor.delete();
-						if (result == OperationStatus.SUCCESS) {
-							return true;
-						}
-					}
-				} catch (DatabaseException e) {
-					if (txn != null) {
-						txn.abort();
-						txn = null;
-					}
-					throw e;
-				} finally {
-					if (cursor != null) {
-						cursor.close();
-					}
-					if (txn != null) {
-						txn.commit();
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return false;
-	}
+    public InProcessPagesDB(Environment env) throws DatabaseException {
+        super(env, "InProcessPagesDB", true);
+        long docCount = getLength();
+        if (docCount > 0) {
+            logger.info("Loaded " + docCount + " URLs that have been in process in the previous crawl.");
+        }
+    }
+
+    public boolean removeURL(WebURL webUrl) {
+        synchronized (mutex) {
+            try {
+                DatabaseEntry key = getDatabaseEntryKey(webUrl);
+                Cursor cursor = null;
+                OperationStatus result;
+                DatabaseEntry value = new DatabaseEntry();
+                Transaction txn = env.beginTransaction(null, null);
+                try {
+                    cursor = urlsDB.openCursor(txn, null);
+                    result = cursor.getSearchKey(key, value, null);
+
+                    if (result == OperationStatus.SUCCESS) {
+                        result = cursor.delete();
+                        if (result == OperationStatus.SUCCESS) {
+                            return true;
+                        }
+                    }
+                } catch (DatabaseException e) {
+                    if (txn != null) {
+                        txn.abort();
+                        txn = null;
+                    }
+                    throw e;
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
+                    if (txn != null) {
+                        txn.commit();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
 }
