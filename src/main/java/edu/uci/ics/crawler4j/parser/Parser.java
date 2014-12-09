@@ -104,6 +104,7 @@ public class Parser extends Configurable {
         HtmlParseData parseData = new HtmlParseData();
         parseData.setText(contentHandler.getBodyText().trim());
         parseData.setTitle(metadata.get(DublinCore.TITLE));
+        page.setMetaRefresh(contentHandler.getMetaRefresh());
 
         List<WebURL> outgoingUrls = new ArrayList<>();
 

@@ -207,4 +207,7 @@ public class HtmlContentHandler extends DefaultHandler {
         return canonicalUrl;
     }
 
+    public String getMetaRefresh() {
+        return metaRefresh;
+    }
 }

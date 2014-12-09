@@ -79,6 +79,12 @@ public class Page {
      */
     protected ParseData parseData;
 
+    /**
+     * Holds the content url of
+     * &lt;meta http-equiv="refresh" content="0;URL=http://foo.bar/..." /&gt;
+     */
+    protected String metaRefresh;
+
     public Page(WebURL url) {
         this.url = url;
         this.canonicalUrl = url;
@@ -205,4 +211,19 @@ public class Page {
         this.contentCharset = contentCharset;
     }
 
+    /**
+     * Returns the URL from
+     * &lt;meta http-equiv="refresh" content="0;URL=http://foo.bar/..." / &gt;
+     */
+    public String getMetaRefresh() {
+        return metaRefresh;
+    }
+
+    public boolean hasMetaRefresh() {
+        return metaRefresh != null && !metaRefresh.isEmpty();
+    }
+
+    public void setMetaRefresh(String metaRefresh) {
+        this.metaRefresh = metaRefresh;
+    }
 }
