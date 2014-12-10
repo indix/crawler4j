@@ -117,12 +117,14 @@ public class HtmlContentHandler extends DefaultHandler {
         }
 
         if (element == Element.META) {
-            String robots = attributes.getValue("name");
+            String name = attributes.getValue("name");
             String equiv = attributes.getValue("http-equiv");
             String content = attributes.getValue("content");
-            if (Util.isNotEmpty(robots) && Util.isNotEmpty(content) && Arrays.asList(content.split(",")).contains("nofollow")) {
+            if (Util.isNotEmpty(name) && Util.isNotEmpty(content) && Arrays.asList(content.split(",")).contains("nofollow")) {
                 entirePageNoFollow = true;
-            } else if (equiv != null && content != null) {
+            } else if (Util.isNotEmpty(content)) {
+                // FIXME - For some reason TIKA is parsing http-equiv="Refresh" as name="Refresh"
+                if(Util.isEmpty(equiv)) equiv = name;
                 equiv = equiv.toLowerCase();
 
                 // http-equiv="refresh" content="0;URL=http://foo.bar/..."
