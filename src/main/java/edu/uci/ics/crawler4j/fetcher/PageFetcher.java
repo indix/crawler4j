@@ -228,6 +228,10 @@ public class PageFetcher extends Configurable {
         }
     }
 
+    public void shutdown() {
+        httpClient.getConnectionManager().shutdown();
+    }
+
     private static class GzipDecompressingEntity extends HttpEntityWrapper {
 
         public GzipDecompressingEntity(final HttpEntity entity) {
