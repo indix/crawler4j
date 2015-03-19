@@ -25,16 +25,17 @@ import org.apache.http.*;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.params.*;
 import org.apache.http.protocol.BasicHttpContext;
@@ -44,6 +45,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
@@ -85,6 +88,22 @@ public class PageFetcher extends Configurable {
 
             HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
             httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        }
+        // Fixing: https://code.google.com/p/crawler4j/issues/detail?id=174
+        // By always trusting the ssl certificate
+        if (config.isIncludeHttpsPages()) {
+            try {
+                SSLSocketFactory sslsf = new SSLSocketFactory(new TrustStrategy() {
+                    public boolean isTrusted(final X509Certificate[] chain, String authType) throws CertificateException {
+                        return true;
+                    }
+                });
+
+                httpClient.getConnectionManager().getSchemeRegistry().register(new Scheme("https", 443, sslsf));
+            } catch (Exception e) {
+                logger.warn("Exception thrown while trying to register https");
+                logger.debug("Stacktrace", e);
+            }
         }
 
         httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
