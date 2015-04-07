@@ -149,11 +149,13 @@ public class PageFetcher extends Configurable {
             HttpContext localContext = new BasicHttpContext();
             CookieStore cookieStore = new BasicCookieStore();
             for (Map.Entry<String, String> entry : config.getCustomCookies().entrySet()) {
-                cookieStore.addCookie(new BasicClientCookie(entry.getKey(), entry.getValue()));
+                BasicClientCookie cookie = new BasicClientCookie(entry.getKey(), entry.getValue());
+                cookie.setDomain(webUrl.getDomain());
+                cookieStore.addCookie(cookie);
             }
             localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
 
-            HttpResponse response = httpClient.execute(get);
+            HttpResponse response = httpClient.execute(get, localContext);
             fetchResult.setEntity(response.getEntity());
             fetchResult.setResponseHeaders(response.getAllHeaders());
 
