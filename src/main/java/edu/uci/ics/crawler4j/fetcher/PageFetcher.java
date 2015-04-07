@@ -68,7 +68,6 @@ public class PageFetcher extends Configurable {
         paramsBean.setContentCharset("UTF-8");
         paramsBean.setUseExpectContinue(false);
 
-        params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
         params.setParameter(CoreProtocolPNames.USER_AGENT, config.getUserAgentString());
         params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.getSocketTimeout());
         params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.getConnectionTimeout());
