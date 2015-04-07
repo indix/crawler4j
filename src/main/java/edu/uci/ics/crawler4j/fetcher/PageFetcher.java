@@ -150,6 +150,7 @@ public class PageFetcher extends Configurable {
             for (Map.Entry<String, String> entry : config.getCustomCookies().entrySet()) {
                 BasicClientCookie cookie = new BasicClientCookie(entry.getKey(), entry.getValue());
                 cookie.setDomain(webUrl.getDomain());
+                cookie.setPath("/");
                 cookieStore.addCookie(cookie);
             }
             localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
