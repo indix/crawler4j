@@ -68,7 +68,6 @@ public class PageFetcher extends Configurable {
         paramsBean.setContentCharset("UTF-8");
         paramsBean.setUseExpectContinue(false);
 
-        params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
         params.setParameter(CoreProtocolPNames.USER_AGENT, config.getUserAgentString());
         params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, config.getSocketTimeout());
         params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, config.getConnectionTimeout());
@@ -149,11 +148,14 @@ public class PageFetcher extends Configurable {
             HttpContext localContext = new BasicHttpContext();
             CookieStore cookieStore = new BasicCookieStore();
             for (Map.Entry<String, String> entry : config.getCustomCookies().entrySet()) {
-                cookieStore.addCookie(new BasicClientCookie(entry.getKey(), entry.getValue()));
+                BasicClientCookie cookie = new BasicClientCookie(entry.getKey(), entry.getValue());
+                cookie.setDomain(webUrl.getDomain());
+                cookie.setPath("/");
+                cookieStore.addCookie(cookie);
             }
             localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
 
-            HttpResponse response = httpClient.execute(get);
+            HttpResponse response = httpClient.execute(get, localContext);
             fetchResult.setEntity(response.getEntity());
             fetchResult.setResponseHeaders(response.getAllHeaders());
 
