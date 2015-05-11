@@ -140,7 +140,7 @@ public class PageFetcher extends Configurable {
             get.addHeader("Accept", "*/*");
 
             for (Map.Entry<String, String> entry : config.getCustomHeaders().entrySet()) {
-                get.addHeader(entry.getKey(), entry.getKey());
+                get.addHeader(entry.getKey(), entry.getValue());
             }
 
             // Create a local instance of cookie store, and bind to local context
