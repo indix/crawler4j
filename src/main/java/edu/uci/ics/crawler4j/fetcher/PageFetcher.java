@@ -34,6 +34,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
@@ -78,53 +79,9 @@ public class PageFetcher extends Configurable {
 
         httpClient = new DefaultHttpClient(params);
 
-        if (config.getProxyHost() != null) {
-            if (config.getProxyUsername() != null) {
-                httpClient.getCredentialsProvider().setCredentials(
-                        new AuthScope(config.getProxyHost(), config.getProxyPort()),
-                        new UsernamePasswordCredentials(config.getProxyUsername(), config.getProxyPassword()));
-            }
-
-            HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
-            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-        }
-        // Fixing: https://code.google.com/p/crawler4j/issues/detail?id=174
-        // By always trusting the ssl certificate
-        if (config.isIncludeHttpsPages()) {
-            try {
-                SSLSocketFactory sslsf = new SSLSocketFactory(new TrustStrategy() {
-                    public boolean isTrusted(final X509Certificate[] chain, String authType) throws CertificateException {
-                        return true;
-                    }
-                });
-
-                httpClient.getConnectionManager().getSchemeRegistry().register(new Scheme("https", 443, sslsf));
-            } catch (Exception e) {
-                logger.warn("Exception thrown while trying to register https");
-                logger.debug("Stacktrace", e);
-            }
-        }
-
-        httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
-
-            @Override
-            public void process(final HttpResponse response, final HttpContext context) throws HttpException, IOException {
-                HttpEntity entity = response.getEntity();
-                if (entity == null) return;
-
-                Header contentEncoding = entity.getContentEncoding();
-                if (contentEncoding != null) {
-                    HeaderElement[] codecs = contentEncoding.getElements();
-                    for (HeaderElement codec : codecs) {
-                        if (codec.getName().equalsIgnoreCase("gzip")) {
-                            response.setEntity(new GzipDecompressingEntity(response.getEntity()));
-                            return;
-                        }
-                    }
-                }
-            }
-
-        });
+        handleProxySettings(config);
+        handleSSLCertificateIssues(config);
+        handleGzipCompression();
     }
 
     public PageFetchResult fetchHeader(WebURL webUrl) {
@@ -241,6 +198,10 @@ public class PageFetcher extends Configurable {
         return fetchResult;
     }
 
+    public void shutdown() {
+        httpClient.getConnectionManager().shutdown();
+    }
+
     private String getProxyInfo() {
         if (config.getProxyHost() == null) {
             return ", Direct-Crawl";
@@ -249,8 +210,65 @@ public class PageFetcher extends Configurable {
         }
     }
 
-    public void shutdown() {
-        httpClient.getConnectionManager().shutdown();
+    private void handleGzipCompression() {
+        httpClient.addResponseInterceptor(new HttpResponseInterceptor() {
+            @Override
+            public void process(final HttpResponse response, final HttpContext context) throws HttpException, IOException {
+                HttpEntity entity = response.getEntity();
+                if (entity == null) return;
+
+                Header contentEncoding = entity.getContentEncoding();
+                if (contentEncoding != null) {
+                    HeaderElement[] codecs = contentEncoding.getElements();
+                    for (HeaderElement codec : codecs) {
+                        if (codec.getName().equalsIgnoreCase("gzip")) {
+                            response.setEntity(new GzipDecompressingEntity(response.getEntity()));
+                            return;
+                        }
+                    }
+                }
+            }
+
+        });
+    }
+
+    private void handleSSLCertificateIssues(CrawlConfig config) {
+        // Fixing: https://code.google.com/p/crawler4j/issues/detail?id=174
+        // By always trusting the ssl certificate
+        if (config.isIncludeHttpsPages()) {
+            try {
+                SSLSocketFactory sslsf = new SSLSocketFactory(new TrustStrategy() {
+                    public boolean isTrusted(final X509Certificate[] chain, String authType) throws CertificateException {
+                        return true;
+                    }
+                });
+
+                httpClient.getConnectionManager().getSchemeRegistry().register(new Scheme("https", 443, sslsf));
+            } catch (Exception e) {
+                logger.warn("Exception thrown while trying to register https");
+                logger.debug("Stacktrace", e);
+            }
+        }
+    }
+
+    private void handleProxySettings(CrawlConfig config) {
+        if (config.getProxyHost() != null) {
+            if (config.getProxyUsername() != null) {
+                final AuthScope authscope = new AuthScope(config.getProxyHost(), config.getProxyPort());
+                final UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(config.getProxyUsername(), config.getProxyPassword());
+                httpClient.getCredentialsProvider().setCredentials(authscope, credentials);
+                httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
+                    @Override
+                    public void process(HttpRequest request, HttpContext context) throws HttpException, IOException {
+                        Header basicScheme = new BasicScheme().authenticate(credentials, request, null);
+                        request.addHeader("Proxy-Authorization", basicScheme.getValue());
+                    }
+                });
+            }
+
+            HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
+            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        }
     }
 
     private static class GzipDecompressingEntity extends HttpEntityWrapper {
